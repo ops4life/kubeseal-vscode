@@ -25,7 +25,7 @@ A Visual Studio Code extension that provides easy integration with `kubeseal` fo
 - **🔐 Encrypt Secrets**: Right-click on YAML files containing Kubernetes secrets to encrypt them using kubeseal
 - **🔓 Decrypt Secrets**: Retrieve the original content of sealed secrets from your Kubernetes cluster
 - **📝 Base64 Encoding/Decoding**: Encode and decode base64 values in Kubernetes secret data fields
-- **� Certificate Folder Management**: Configure a folder containing multiple kubeseal certificates and easily switch between them
+- **📂 Certificate Folder Management**: Configure a folder containing multiple kubeseal certificates and easily switch between them
 - **🔄 Active Certificate Selection**: Click on the status bar to select which certificate to use for encryption
 - **🎯 Context Menu Integration**: Access kubeseal operations directly from the file explorer and editor context menus
 
