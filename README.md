@@ -10,12 +10,14 @@ A Visual Studio Code extension that provides easy integration with `kubeseal` fo
 ## 🚀 Installation
 
 **Install from VS Code Marketplace:**
+
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X)
 3. Search for "Kubeseal VSCode"
 4. Click Install
 
 **Or install directly:**
+
 - [Download from Releases page](https://github.com/duyluann/kubeseal-vscode/releases)
 
 ## ✨ Features
@@ -23,7 +25,8 @@ A Visual Studio Code extension that provides easy integration with `kubeseal` fo
 - **🔐 Encrypt Secrets**: Right-click on YAML files containing Kubernetes secrets to encrypt them using kubeseal
 - **🔓 Decrypt Secrets**: Retrieve the original content of sealed secrets from your Kubernetes cluster
 - **📝 Base64 Encoding/Decoding**: Encode and decode base64 values in Kubernetes secret data fields
-- **📋 Certificate Management**: Set and manage the path to your kubeseal certificate
+- **📂 Certificate Folder Management**: Configure a folder containing multiple kubeseal certificates and easily switch between them
+- **🔄 Active Certificate Selection**: Click on the status bar to select which certificate to use for encryption
 - **🎯 Context Menu Integration**: Access kubeseal operations directly from the file explorer and editor context menus
 
 ## 📋 Requirements
@@ -31,19 +34,22 @@ A Visual Studio Code extension that provides easy integration with `kubeseal` fo
 > **Important:** You must have access to your Kubernetes cluster before using this extension, especially for decryption.
 
 **Development Requirements:**
+
 - Node.js 20+ (for development and building)
 
 **Runtime Requirements:**
+
 - `kubeseal` binary must be installed and accessible in your PATH
 - `kubectl` binary must be installed and configured for cluster access
-- For encryption: A kubeseal certificate file (`.pem`, `.crt`, or `.cert`)
+- For encryption: A kubeseal certificate folder containing certificate files (`.pem`, `.crt`, or `.cert`)
 - For decryption: Access to the Kubernetes cluster where the secret is deployed
 
 ## 🛠️ Setup
 
 1. Install the `kubeseal` binary from [sealed-secrets releases](https://github.com/bitnami-labs/sealed-secrets/releases)
 2. Install this extension from the VS Code marketplace
-3. Configure the certificate path using the command palette: "Set Kubeseal Certificate Path"
+3. Configure your certificate folder using the command palette: "Set Kubeseal Certificate Folder"
+4. Select an active certificate by clicking on the status bar item
 
 ## 📖 Usage
 
@@ -69,10 +75,21 @@ A Visual Studio Code extension that provides easy integration with `kubeseal` fo
 - Your `kubectl` is configured to access the correct cluster
 - You have permissions to read secrets in the target namespace
 
-### 🔧 Setting Certificate Path
+### 🔧 Managing Certificates
 
-- Use Command Palette: `Ctrl+Shift+P` → "Set Kubeseal Certificate Path"
-- Or configure in VS Code settings: `kubeseal.certPath`
+#### Setting Certificate Folder
+
+- Use Command Palette: `Ctrl+Shift+P` → "Set Kubeseal Certificate Folder"
+- Or configure in VS Code settings: `kubeseal.certsFolder`
+
+#### Selecting Active Certificate
+
+1. Look at the status bar at the bottom of VS Code
+2. Click on the certificate name (or "(not selected)" if none is active)
+3. Choose from the list of available certificates in your configured folder
+4. The selected certificate will be used for all encryption operations
+
+**Note**: If no certificate folder is configured, clicking the status bar will prompt you to set one up.
 
 ### 📝 Base64 Encoding/Decoding
 
@@ -94,14 +111,16 @@ The extension provides utilities for working with base64 encoded values in Kuber
 
 The extension provides the following settings:
 
-- `kubeseal.certPath`: Path to the kubeseal certificate file
+- `kubeseal.certsFolder`: Path to the folder containing kubeseal certificate files (\*.pem, \*.crt, \*.cert)
+- `kubeseal.activeCertFile`: Filename of the currently active certificate in the certs folder
 - `kubeseal.kubesealPath`: Path to the kubeseal binary (default: "kubeseal")
 
 ## 🎮 Commands
 
 - `kubeseal.encrypt`: Encrypt with Kubeseal
 - `kubeseal.decrypt`: Decrypt Secret
-- `kubeseal.setCertPath`: Set Kubeseal Certificate Path
+- `kubeseal.setCertFolder`: Set Kubeseal Certificate Folder
+- `kubeseal.selectCertificate`: Select Certificate
 - `kubeseal.encodeBase64`: Encode Base64 Values
 - `kubeseal.decodeBase64`: Decode Base64 Values
 

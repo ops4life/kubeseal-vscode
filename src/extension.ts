@@ -6,8 +6,112 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+let statusBarItem: vscode.StatusBarItem;
+
+// Helper to get current certificate path from folder
+async function getCurrentCertificatePath(progress?: vscode.Progress<{ message?: string; increment?: number }>): Promise<string | undefined> {
+    const config = vscode.workspace.getConfiguration('kubeseal');
+    const certsFolder = config.get<string>('certsFolder', '');
+    const activeCertFile = config.get<string>('activeCertFile', '');
+
+    if (!certsFolder) {
+        progress?.report?.({ message: "No certs folder configured." });
+        const result = await vscode.window.showErrorMessage(
+            'No certificate folder configured. Please configure it first.',
+            'Open Settings',
+            'Set Certificate Folder'
+        );
+        if (result === 'Open Settings') {
+            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:devops4life.kubeseal-vscode certsFolder');
+        } else if (result === 'Set Certificate Folder') {
+            vscode.commands.executeCommand('kubeseal.setCertFolder');
+        }
+        return undefined;
+    }
+
+    if (!activeCertFile) {
+        progress?.report?.({ message: "No certificate selected." });
+        vscode.window.showErrorMessage('No certificate selected. Please select one from the status bar.');
+        return undefined;
+    }
+
+    const certPath = path.join(certsFolder, activeCertFile);
+    return certPath;
+}
+
+// Select active certificate from certs folder
+async function selectCertificate() {
+    const config = vscode.workspace.getConfiguration('kubeseal');
+    const certsFolder = config.get<string>('certsFolder', '');
+
+    if (!certsFolder) {
+        const result = await vscode.window.showErrorMessage(
+            'No certificate folder configured. Please configure it first.',
+            'Open Settings',
+            'Set Certificate Folder'
+        );
+        if (result === 'Open Settings') {
+            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:devops4life.kubeseal-vscode certsFolder');
+        } else if (result === 'Set Certificate Folder') {
+            vscode.commands.executeCommand('kubeseal.setCertFolder');
+        }
+        return;
+    }
+
+    let files: string[] = [];
+    try {
+        files = fs.readdirSync(certsFolder)
+            .filter(f => f.match(/\.(pem|crt|cert)$/i));
+    } catch (e) {
+        vscode.window.showErrorMessage('Failed to read certs folder.');
+        return;
+    }
+
+    if (files.length === 0) {
+        vscode.window.showWarningMessage('No certificate files found in folder.');
+        return;
+    }
+
+    const selected = await vscode.window.showQuickPick(files, {
+        placeHolder: 'Select certificate file to use'
+    });
+
+    if (selected) {
+        await config.update('activeCertFile', selected, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`Active certificate set to '${selected}'.`);
+        updateStatusBar();
+    }
+}
+
+// Update status bar item to show active cert file
+function updateStatusBar() {
+    const config = vscode.workspace.getConfiguration('kubeseal');
+    const certsFolder = config.get<string>('certsFolder', '');
+    const activeCertFile = config.get<string>('activeCertFile', '');
+
+    if (!certsFolder) {
+        statusBarItem.text = '(no folder set)';
+        statusBarItem.tooltip = 'Current active Kubeseal cert - Click to configure certificate folder';
+    } else if (activeCertFile) {
+        statusBarItem.text = activeCertFile;
+        statusBarItem.tooltip = `Current active Kubeseal cert: ${path.join(certsFolder, activeCertFile)}`;
+    } else {
+        statusBarItem.text = '(not selected)';
+        statusBarItem.tooltip = 'Current active Kubeseal cert - Click to select a certificate file';
+    }
+    statusBarItem.show();
+}
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('Kubeseal VSCode extension is now active!');
+
+    // Create status bar item
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    statusBarItem.command = 'kubeseal.selectCertificate';
+    context.subscriptions.push(statusBarItem);
+
+    // Update status bar on activation
+    updateStatusBar();
 
     // Register commands
     context.subscriptions.push(
@@ -35,14 +139,20 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('kubeseal.setCertPath', () => {
+        vscode.commands.registerCommand('kubeseal.setCertFolder', () => {
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
-                title: "Setting Certificate Path...",
+                title: "Setting Certificate Folder...",
                 cancellable: false
             }, async (progress) => {
-                await setCertificatePath(progress);
+                await setCertificateFolder(progress);
             });
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('kubeseal.selectCertificate', () => {
+            selectCertificate();
         })
     );
 
@@ -69,6 +179,15 @@ export function activate(context: vscode.ExtensionContext) {
             });
         })
     );
+
+    // Listen for configuration changes
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration('kubeseal')) {
+                updateStatusBar();
+            }
+        })
+    );
 }
 
 async function encryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ message?: string; increment?: number }>) {
@@ -76,26 +195,12 @@ async function encryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
         progress?.report({ message: "Loading configuration..." });
         const filePath = uri.fsPath;
         const config = vscode.workspace.getConfiguration('kubeseal');
-        let certPath = config.get<string>('certPath', '');
         const kubesealPath = config.get<string>('kubesealPath', 'kubeseal');
 
-        // Check if certificate path is set
+        // Get certificate path using new system
+        const certPath = await getCurrentCertificatePath(progress);
         if (!certPath) {
-            progress?.report({ message: "Certificate path not set. Asking user..." });
-            const result = await vscode.window.showInformationMessage(
-                'Certificate path not set. Would you like to set it now?',
-                'Yes', 'No'
-            );
-            if (result === 'Yes') {
-                await setCertificatePath(progress);
-                // Fetch updated config
-                const newConfig = vscode.workspace.getConfiguration('kubeseal');
-                certPath = newConfig.get<string>('certPath', '');
-            }
-            if (!certPath) {
-                vscode.window.showErrorMessage('Certificate path is required for encryption');
-                return;
-            }
+            return;
         }
 
         // Check if certificate file exists
@@ -201,24 +306,25 @@ async function decryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
     }
 }
 
-async function setCertificatePath(progress?: vscode.Progress<{ message?: string; increment?: number }>) {
-    progress?.report?.({ message: "Prompting for certificate file..." });
+async function setCertificateFolder(progress?: vscode.Progress<{ message?: string; increment?: number }>) {
+    progress?.report?.({ message: "Prompting for certificate folder..." });
     const options: vscode.OpenDialogOptions = {
         canSelectMany: false,
-        openLabel: 'Select Certificate',
-        filters: {
-            'Certificate files': ['pem', 'crt', 'cert'],
-            'All files': ['*']
-        }
+        canSelectFolders: true,
+        canSelectFiles: false,
+        openLabel: 'Select Certificate Folder'
     };
 
-    const fileUri = await vscode.window.showOpenDialog(options);
-    if (fileUri && fileUri.length > 0) {
-        progress?.report?.({ message: "Saving certificate path to config..." });
-        const certPath = fileUri[0].fsPath;
+    const folderUri = await vscode.window.showOpenDialog(options);
+    if (folderUri && folderUri.length > 0) {
+        progress?.report?.({ message: "Saving certificate folder to config..." });
+        const certsFolder = folderUri[0].fsPath;
         const config = vscode.workspace.getConfiguration('kubeseal');
-        await config.update('certPath', certPath, vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage(`Certificate path set to: ${certPath}`);
+        await config.update('certsFolder', certsFolder, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`Certificate folder set to: ${certsFolder}`);
+        // Clear any active cert file since we're changing folders
+        await config.update('activeCertFile', '', vscode.ConfigurationTarget.Global);
+        updateStatusBar();
     }
 }
 
