@@ -14,6 +14,8 @@ sublime-project
 # Build output
 node_modules/
 build/*
+# Ignore compiled output
+out/
 
 # Package managers
 # package-lock.json
@@ -34,4 +36,3 @@ gitleaks-report.txt
 
 # extensions
 *.vsix
-out/
