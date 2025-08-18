@@ -34,3 +34,4 @@ gitleaks-report.txt
 
 # extensions
 *.vsix
+out
