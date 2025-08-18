@@ -334,32 +334,38 @@ async function encodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
         const filePath = uri.fsPath;
         const inputContent = fs.readFileSync(filePath, 'utf8');
 
-        if (!inputContent.includes('kind: Secret')) {
+        // Check for various Secret formats
+        if (!inputContent.includes('kind: Secret') && !inputContent.includes('kind:Secret')) {
             vscode.window.showWarningMessage('This file does not appear to contain a Kubernetes Secret');
             return;
         }
 
         let modifiedContent = inputContent;
         let encodedCount = 0;
+        let skippedCount = 0;
+        const processedKeys: string[] = [];
 
         progress?.report({ message: "Encoding values..." });
 
-        const dataRegex = /^(\s*data:\s*\n)((?:\s{2,}[^:\s]+:\s*[^\n]*(?:\s*#[^\n]*)?\n)*)/m;
+        // Enhanced regex to handle various YAML formatting styles
+        const dataRegex = /^(\s*data\s*:\s*(?:\n|$))((?:(?:\s{2,}[^:\s]+\s*:\s*[^\n]*(?:\s*#[^\n]*)?\n)*)?)/m;
         const dataMatch = modifiedContent.match(dataRegex);
 
         if (dataMatch) {
             const dataPrefix = dataMatch[1];
-            const dataContent = dataMatch[2];
+            const dataContent = dataMatch[2] || '';
             const lines = dataContent.split('\n');
             let newDataContent = '';
 
             for (const line of lines) {
-                if (line.trim() === '') {
+                // Preserve empty lines and comments
+                if (line.trim() === '' || line.trim().startsWith('#')) {
                     newDataContent += line + '\n';
                     continue;
                 }
 
-                const keyValueMatch = line.match(/^(\s*)([^:\s]+):\s*([^#\n]*?)(\s*#.*)?$/);
+                // Enhanced key-value matching to handle various formats
+                const keyValueMatch = line.match(/^(\s*)([^:\s]+)\s*:\s*([^#\n]*?)(\s*#.*)?$/);
                 if (keyValueMatch) {
                     const indent = keyValueMatch[1];
                     const key = keyValueMatch[2];
@@ -367,18 +373,50 @@ async function encodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
                     const comment = keyValueMatch[4] || '';
 
                     if (value) {
-                        const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-                        if (!base64Regex.test(value)) {
-                            const encoded = Buffer.from(value).toString('base64');
-                            newDataContent += `${indent}${key}: ${encoded}${comment}\n`;
-                            encodedCount++;
+                        // Improved base64 detection - also handle URL-safe base64
+                        const base64Regex = /^[A-Za-z0-9+/\-_]*={0,2}$/;
+                        const isValidBase64Length = value.length % 4 === 0 || value.includes('=');
+
+                        // Additional checks for base64
+                        const isProbablyBase64 = (value: string): boolean => {
+                            // If it's very short, probably not base64
+                            if (value.length < 4) return false;
+
+                            // Check if it matches base64 pattern
+                            if (!base64Regex.test(value)) return false;
+
+                            // Try to decode to validate
+                            try {
+                                const decoded = Buffer.from(value, 'base64').toString('utf8');
+                                const reencoded = Buffer.from(decoded, 'utf8').toString('base64');
+                                return reencoded === value || reencoded === value.replace(/[=]+$/, '');
+                            } catch {
+                                return false;
+                            }
+                        };
+
+                        if (!isProbablyBase64(value)) {
+                            // Handle special characters and Unicode properly
+                            try {
+                                const encoded = Buffer.from(value, 'utf8').toString('base64');
+                                newDataContent += `${indent}${key}: ${encoded}${comment}\n`;
+                                encodedCount++;
+                                processedKeys.push(key);
+                            } catch (encodeError) {
+                                // If encoding fails, keep original value
+                                newDataContent += line + '\n';
+                                vscode.window.showWarningMessage(`Failed to encode value for key '${key}': ${encodeError}`);
+                            }
                         } else {
                             newDataContent += line + '\n';
+                            skippedCount++;
                         }
                     } else {
+                        // Handle empty values
                         newDataContent += line + '\n';
                     }
                 } else {
+                    // Preserve lines that don't match key-value pattern
                     newDataContent += line + '\n';
                 }
             }
@@ -386,12 +424,30 @@ async function encodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
             if (encodedCount > 0) {
                 modifiedContent = modifiedContent.replace(dataRegex, dataPrefix + newDataContent);
                 fs.writeFileSync(filePath, modifiedContent, 'utf8');
-                vscode.window.showInformationMessage(`Encoded ${encodedCount} value(s) to base64`);
-            } else {
+
+                let message = `Encoded ${encodedCount} value(s) to base64`;
+                if (skippedCount > 0) {
+                    message += ` (skipped ${skippedCount} already encoded)`;
+                }
+                if (processedKeys.length > 0) {
+                    message += `\nProcessed keys: ${processedKeys.join(', ')}`;
+                }
+                vscode.window.showInformationMessage(message);
+            } else if (skippedCount > 0) {
                 vscode.window.showInformationMessage('All values in "data" are already base64 encoded');
+            } else {
+                vscode.window.showInformationMessage('No values found to encode in "data" field');
             }
         } else {
-            vscode.window.showWarningMessage('No "data" field found in the Secret');
+            // Also check for stringData field
+            const stringDataRegex = /^(\s*stringData\s*:\s*(?:\n|$))((?:(?:\s{2,}[^:\s]+\s*:\s*[^\n]*(?:\s*#[^\n]*)?\n)*)?)/m;
+            const stringDataMatch = modifiedContent.match(stringDataRegex);
+
+            if (stringDataMatch) {
+                vscode.window.showInformationMessage('Found "stringData" field. Note: stringData values are automatically base64 encoded by Kubernetes. Consider moving them to "data" field if you want to manually encode them.');
+            } else {
+                vscode.window.showWarningMessage('No "data" or "stringData" field found in the Secret');
+            }
         }
 
     } catch (error) {
@@ -406,32 +462,40 @@ async function decodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
         const filePath = uri.fsPath;
         const inputContent = fs.readFileSync(filePath, 'utf8');
 
-        if (!inputContent.includes('kind: Secret')) {
+        // Check for various Secret formats
+        if (!inputContent.includes('kind: Secret') && !inputContent.includes('kind:Secret')) {
             vscode.window.showWarningMessage('This file does not appear to contain a Kubernetes Secret');
             return;
         }
 
         let modifiedContent = inputContent;
         let decodedCount = 0;
+        let skippedCount = 0;
+        let errorCount = 0;
+        const processedKeys: string[] = [];
+        const errorKeys: string[] = [];
 
         progress?.report({ message: "Decoding base64 values..." });
 
-        const dataRegex = /^(\s*data:\s*\n)((?:\s{2,}[^:\s]+:\s*[^\n]*(?:\s*#[^\n]*)?\n)*)/m;
+        // Enhanced regex to handle various YAML formatting styles
+        const dataRegex = /^(\s*data\s*:\s*(?:\n|$))((?:(?:\s{2,}[^:\s]+\s*:\s*[^\n]*(?:\s*#[^\n]*)?\n)*)?)/m;
         const dataMatch = modifiedContent.match(dataRegex);
 
         if (dataMatch) {
             const dataPrefix = dataMatch[1];
-            const dataContent = dataMatch[2];
+            const dataContent = dataMatch[2] || '';
             const lines = dataContent.split('\n');
             let newDataContent = '';
 
             for (const line of lines) {
-                if (line.trim() === '') {
+                // Preserve empty lines and comments
+                if (line.trim() === '' || line.trim().startsWith('#')) {
                     newDataContent += line + '\n';
                     continue;
                 }
 
-                const keyValueMatch = line.match(/^(\s*)([^:\s]+):\s*([^#\n]*?)(\s*#.*)?$/);
+                // Enhanced key-value matching to handle various formats
+                const keyValueMatch = line.match(/^(\s*)([^:\s]+)\s*:\s*([^#\n]*?)(\s*#.*)?$/);
                 if (keyValueMatch) {
                     const indent = keyValueMatch[1];
                     const key = keyValueMatch[2];
@@ -439,22 +503,74 @@ async function decodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
                     const comment = keyValueMatch[4] || '';
 
                     if (value) {
-                        const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-                        if (base64Regex.test(value)) {
+                        // Enhanced base64 validation and decoding
+                        const isValidBase64 = (str: string): boolean => {
+                            // Check if it matches base64 pattern (including URL-safe)
+                            const base64Regex = /^[A-Za-z0-9+/\-_]*={0,2}$/;
+                            if (!base64Regex.test(str)) return false;
+
+                            // Check length requirements
+                            if (str.length < 4) return false;
+
+                            // Try decoding to validate
+                            try {
+                                const decoded = Buffer.from(str, 'base64');
+                                // Check if decoded content is valid UTF-8
+                                const decodedStr = decoded.toString('utf8');
+                                // Re-encode to check if it matches (handling padding)
+                                const reencoded = Buffer.from(decodedStr, 'utf8').toString('base64');
+                                return reencoded === str || reencoded === str.replace(/[=]+$/, '');
+                            } catch {
+                                return false;
+                            }
+                        };
+
+                        if (isValidBase64(value)) {
                             try {
                                 const decoded = Buffer.from(value, 'base64').toString('utf8');
-                                newDataContent += `${indent}${key}: ${decoded}${comment}\n`;
-                                decodedCount++;
+
+                                // Check if decoded content is readable/printable
+                                const hasNonPrintable = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(decoded);
+
+                                if (!hasNonPrintable) {
+                                    // Handle special characters that need quoting in YAML
+                                    let quotedValue = decoded;
+                                    const needsQuoting = /^[\s]*$|^[0-9]|^(true|false|null|yes|no|on|off)$/i.test(decoded) ||
+                                                       /[:\[\]{}|>]/.test(decoded) ||
+                                                       decoded.includes('\n') ||
+                                                       decoded.includes('"') ||
+                                                       decoded.includes("'");
+
+                                    if (needsQuoting) {
+                                        // Use double quotes and escape internal quotes
+                                        quotedValue = '"' + decoded.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+                                    }
+
+                                    newDataContent += `${indent}${key}: ${quotedValue}${comment}\n`;
+                                    decodedCount++;
+                                    processedKeys.push(key);
+                                } else {
+                                    // Binary content detected, keep as base64
+                                    newDataContent += line + '\n';
+                                    skippedCount++;
+                                }
                             } catch (decodeError) {
+                                // If decoding fails, keep original value
                                 newDataContent += line + '\n';
+                                errorCount++;
+                                errorKeys.push(key);
                             }
                         } else {
+                            // Not base64, keep as is
                             newDataContent += line + '\n';
+                            skippedCount++;
                         }
                     } else {
+                        // Handle empty values
                         newDataContent += line + '\n';
                     }
                 } else {
+                    // Preserve lines that don't match key-value pattern
                     newDataContent += line + '\n';
                 }
             }
@@ -462,9 +578,25 @@ async function decodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
             if (decodedCount > 0) {
                 modifiedContent = modifiedContent.replace(dataRegex, dataPrefix + newDataContent);
                 fs.writeFileSync(filePath, modifiedContent, 'utf8');
-                vscode.window.showInformationMessage(`Decoded ${decodedCount} base64 value(s)`);
+
+                let message = `Decoded ${decodedCount} base64 value(s)`;
+                if (skippedCount > 0) {
+                    message += ` (skipped ${skippedCount} non-base64/binary)`;
+                }
+                if (errorCount > 0) {
+                    message += ` (${errorCount} errors)`;
+                }
+                if (processedKeys.length > 0) {
+                    message += `\nProcessed keys: ${processedKeys.join(', ')}`;
+                }
+                if (errorKeys.length > 0) {
+                    message += `\nError keys: ${errorKeys.join(', ')}`;
+                }
+                vscode.window.showInformationMessage(message);
+            } else if (skippedCount > 0) {
+                vscode.window.showInformationMessage('No base64 encoded values found to decode in "data" field');
             } else {
-                vscode.window.showInformationMessage('No base64 encoded values found in "data" field');
+                vscode.window.showInformationMessage('No values found in "data" field');
             }
         } else {
             vscode.window.showWarningMessage('No "data" field found in the Secret');

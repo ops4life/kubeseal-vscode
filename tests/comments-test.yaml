@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: comments-test-secret
+    namespace: default
+type: Opaque
+data:
+    # Test inline comments preservation
+    username: admin # This is a plain text username
+    password: bXlwYXNzd29yZA== # This is base64: mypassword
+
+    # Test values with various comment styles
+    api_key: my-api-key-123 # API key for external service
+    token: dG9rZW4xMjM= # base64 token
+
+    # Values without comments
+    database_url: postgres://user:pass@localhost:5432/mydb
+    redis_url: cmVkaXM6Ly86cGFzc0ByZWRpczoxMjM=
+
+    # Comments with special characters
+    special_value: test@123! # Comment with @#$% special chars
+
+    # Multiple spaces and tabs in comments
+    spaced_value: value123 # 	Comment with	tabs and   spaces

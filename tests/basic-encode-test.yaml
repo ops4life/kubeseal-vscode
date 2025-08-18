@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: basic-test-secret
+    namespace: default
+type: Opaque
+data:
+    # Plain text values to be encoded
+    username: admin
+    password: mypassword123
+    email: user@example.com
+
+    # Already base64 encoded values (should be skipped)
+    token: YWJjZGVmZ2hpams=
+    apikey: bXlhcGlrZXkxMjM=
+
+    # Empty value
+    empty_field: ''
+
+    # Special characters and Unicode
+    special_chars: 'hello@world!#$%'
+    unicode_text: 'Hello 世界 🌍'
+
+    # Values that look like YAML keywords
+    boolean_like: 'true'
+    number_like: '123'
+    null_like: 'null'
