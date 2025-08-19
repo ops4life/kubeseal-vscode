@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.8.0...v1.9.0) (2025-08-19)
+
+
+### Features
+
+* enhance base64 encoding/decoding for Kubernetes Secrets and add comprehensive test cases ([#14](https://github.com/duyluann/kubeseal-vscode/issues/14)) ([5cffcec](https://github.com/duyluann/kubeseal-vscode/commit/5cffcec244e4ead08c0e01e040d012d02b6c0e6e))
+
 # [1.8.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.7.2...v1.8.0) (2025-08-18)
 
 
