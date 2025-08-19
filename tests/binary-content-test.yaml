@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: binary-content-test
+    namespace: default
+type: Opaque
+data:
+    # Small PNG image (1x1 pixel transparent) - should stay as base64
+    tiny_png: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==
+
+    # SSL Certificate (PEM format) - should stay as base64
+    ssl_cert: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNVVENDQWJpZ0F3SUJBZ0lKQUxaRjhEWTFtc0daTUEwR0NTcUdTSWIzRFFFQkN3VUFNRUl4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpEUVRFVE1CRUdBMVVFQnd3S1UyRnVkR0VnUTJ4aGNtRXhDekFKQmdOVgpCQW9NQWtOQk1SQXdEZ1lEVlFRRERBZDBaWE4wTG1OdmJUQWVGdzB5TkRBek1qTXhNakUxTXpGYUZ3MHpOREF6Ck1qQXhNakUxTXpGYU1FSXhDekFKQmdOVkJBWVRBbFZUTVFzd0NRWURWUVFJREFKRFFURU==
+
+    # ZIP file header - should stay as base64
+    zip_data: UEsDBAoAAAAAAIdWfUgAAAAAAAAAAAAAAAAJABwAZGlyZWN0b3J5L1VUCQADM6GCWDOhglh1eAsAAQT2AQAABBQAAABQSwMEFAAAAAgAh1Z9SMTc
+
+    # JPEG header - should stay as base64
+    jpeg_header: /9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/
+
+    # Text content that should be decoded
+    readme_content: IyBSRUFETUUKClRoaXMgaXMgYSByZWFkbWUgZmlsZSBjb250ZW50Cg== # "# README\n\nThis is a readme file content\n"
+
+    # Configuration file content
+    config_json: eyJuYW1lIjoidGVzdCIsInZlcnNpb24iOiIxLjAiLCJkZWJ1ZyI6dHJ1ZX0= # {"name":"test","version":"1.0","debug":true}

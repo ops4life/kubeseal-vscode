@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: edge-cases-secret
+    namespace: default
+type: Opaque
+data:
+    # Various YAML formatting edge cases
+
+    # Different spacing styles
+    normal_spacing: value1
+    extra_spaces: value2
+    no_space: value3
+
+    # Values with colons and special YAML characters
+    url_with_colon: 'https://example.com:8080'
+    json_like: '{"key": "value", "nested": {"inner": true}}'
+    pipe_char: 'value|with|pipes'
+    bracket_value: '[array, like, value]'
+
+    # Multiline values (should be base64 encoded)
+    multiline_text: |
+        This is a multiline
+        text value that spans
+        multiple lines
+
+    # Values starting with numbers or special chars
+    starts_with_number: '123abc'
+    starts_with_special: '@username'
+
+    # Already base64 with different padding
+    base64_no_pad: YWJjZGVm # abcdef (no padding)
+    base64_one_pad: YWJjZGU= # abcde (one = pad)
+    base64_two_pad: YWJjZA== # abcd (two == pads)
+
+    # Very long base64 string
+    long_base64: VGhpcyBpcyBhIHZlcnkgbG9uZyBzdHJpbmcgdGhhdCB3aWxsIGJlIGVuY29kZWQgYXMgYmFzZTY0IGFuZCBzaG91bGQgYmUgZGV0ZWN0ZWQgY29ycmVjdGx5IGV2ZW4gdGhvdWdoIGl0IGlzIHF1aXRlIGxvbmc=
+
+    # Empty and whitespace values
+    empty_string: ''
+    whitespace_only: '   '
+    tab_and_space: '	 	'
+
+    # Values that could be confused with base64
+    not_base64_similar: 'abc123XYZ'
+    hex_like: 'deadbeef'
+    uuid_like: '550e8400-e29b-41d4-a716-446655440000'

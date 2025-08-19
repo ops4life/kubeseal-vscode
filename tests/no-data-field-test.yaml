@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: no-data-field-secret
+    namespace: default
+    annotations:
+        description: 'This secret has no data field to test error handling'
+type: Opaque
+# This secret has no data field - should trigger appropriate warning

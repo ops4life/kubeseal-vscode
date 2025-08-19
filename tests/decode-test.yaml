@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: base64-decode-test
+    namespace: default
+type: Opaque
+data:
+    # Valid base64 text values to be decoded
+    username: YWRtaW4= # admin
+    password: bXlwYXNzd29yZDEyMw== # mypassword123
+    email: dXNlckBleGFtcGxlLmNvbQ== # user@example.com
+
+    # Base64 with special characters
+    special_text: aGVsbG9Ad29ybGQhIyQl # hello@world!#$%
+    unicode_text: SGVsbG8g5LiW55WMIPCfjI0= # Hello 世界 🌍
+
+    # YAML special values (should be quoted after decode)
+    yaml_true: dHJ1ZQ== # true
+    yaml_false: ZmFsc2U= # false
+    yaml_null: bnVsbA== # null
+    yaml_number: MTIz # 123
+
+    # Multiline content
+    config_file: IyBDb25maWd1cmF0aW9uIGZpbGUKc2VydmVyOgogIGhvc3Q6IGxvY2FsaG9zdAogIHBvcnQ6IDgwODA=
+
+    # JSON content
+    json_config: eyJuYW1lIjogInRlc3QiLCAidmVyc2lvbiI6ICIxLjAiLCAiZGVidWciOiB0cnVlfQ==
+
+    # Binary-like content (should not be decoded)
+    binary_data: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==
+
+    # URL-safe base64
+    url_safe: aGVsbG8td29ybGQ_dGVzdA # hello-world?test (with - and _ and no padding)

@@ -1,0 +1,21 @@
+  apiVersion: v1
+  kind: Secret
+  metadata:
+      name: stringdata-test
+      namespace: default
+  type: Opaque
+  stringData:
+      # stringData values are automatically base64 encoded by Kubernetes
+      # These should trigger a warning message in the extension
+      username: admin
+      password: password123
+      config.yaml: |
+          server:
+            host: localhost
+            port: 8080
+          database:
+            host: db.example.com
+            port: 5432
+  data:
+      # Regular data field with base64 values
+      secret_key: bXktc2VjcmV0LWtleQ== # my-secret-key

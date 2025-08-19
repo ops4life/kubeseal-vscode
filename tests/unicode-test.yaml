@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: unicode-special-chars-test
+    namespace: default
+type: Opaque
+data:
+    # Unicode characters
+    chinese_text: 你好世界 # Should be encoded
+    japanese_text: こんにちは世界 # Should be encoded
+    arabic_text: مرحبا بالعالم # Should be encoded
+    emoji_text: 'Hello 🌍 World 🚀' # Should be encoded
+
+    # Already encoded Unicode
+    encoded_chinese: 5L2g5aW95LiW55WM # 你好世界 (base64)
+    encoded_japanese: 44GT44KT44Gr44Gh44Gv5LiW55WM # こんにちは世界 (base64)
+
+    # Special characters that need YAML escaping
+    quotes_text: 'He said "Hello" to me'
+    backslash_text: "Path: C:\\Users\\Test"
+    newlines_text: "Line 1\nLine 2\nLine 3"
+    tabs_text: "Column1\tColumn2\tColumn3"
+
+    # Mixed special characters
+    complex_text: "Email: test@example.com | Password: P@ssw0rd! | Notes: 'Important'"
+
+    # URLs and technical strings
+    database_connection: 'postgresql://user:p@ssword@localhost:5432/mydb?sslmode=require'
+    jwt_payload: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' # Valid JWT header (base64)
+
+    # Mathematical and scientific notation
+    math_expression: 'E=mc² ∑(x²) ∫f(x)dx'
+
+    # Currency and symbols
+    price_text: 'Price: $123.45 €99.99 ¥500 £75.00'
