@@ -16,7 +16,10 @@
     "categories": [
         "Other"
     ],
-    "activationEvents": [],
+    "activationEvents": [
+        "onStartupFinished",
+        "onLanguage:yaml"
+    ],
     "main": "./out/extension.js",
     "contributes": {
         "commands": [

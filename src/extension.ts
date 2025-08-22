@@ -90,13 +90,13 @@ function updateStatusBar() {
     const activeCertFile = config.get<string>('activeCertFile', '');
 
     if (!certsFolder) {
-        statusBarItem.text = '(no folder set)';
+        statusBarItem.text = '$(key) (no folder set)';
         statusBarItem.tooltip = 'Current active Kubeseal cert - Click to configure certificate folder';
     } else if (activeCertFile) {
-        statusBarItem.text = activeCertFile;
+        statusBarItem.text = `$(key) ${activeCertFile}`;
         statusBarItem.tooltip = `Current active Kubeseal cert: ${path.join(certsFolder, activeCertFile)}`;
     } else {
-        statusBarItem.text = '(not selected)';
+        statusBarItem.text = '$(key) (not selected)';
         statusBarItem.tooltip = 'Current active Kubeseal cert - Click to select a certificate file';
     }
     statusBarItem.show();
@@ -108,9 +108,10 @@ export function activate(context: vscode.ExtensionContext) {
     // Create status bar item
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     statusBarItem.command = 'kubeseal.selectCertificate';
+    statusBarItem.name = 'Kubeseal Certificate';
     context.subscriptions.push(statusBarItem);
 
-    // Update status bar on activation
+    // Update status bar on activation and show it immediately
     updateStatusBar();
 
     // Register commands
