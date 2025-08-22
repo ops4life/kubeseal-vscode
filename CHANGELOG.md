@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.10.0...v1.11.0) (2025-08-22)
+
+
+### Features
+
+* update activation events to trigger on specific languages ([#17](https://github.com/duyluann/kubeseal-vscode/issues/17)) ([5727f3e](https://github.com/duyluann/kubeseal-vscode/commit/5727f3ebd244226aea199c571b68ccedd6871f89))
+
 # [1.10.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.9.0...v1.10.0) (2025-08-22)
 
 
