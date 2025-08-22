@@ -17,7 +17,7 @@
         "Other"
     ],
     "activationEvents": [
-        "onStartupFinished",
+        "onLanguage:helm",
         "onLanguage:yaml"
     ],
     "main": "./out/extension.js",
