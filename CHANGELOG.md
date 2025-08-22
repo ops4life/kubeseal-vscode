@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.9.0...v1.10.0) (2025-08-22)
+
+
+### Features
+
+* add activation events and enhance status bar item display ([#16](https://github.com/duyluann/kubeseal-vscode/issues/16)) ([cfadc86](https://github.com/duyluann/kubeseal-vscode/commit/cfadc86d1a433771a2d78e5ef83b1f0828494d06))
+
 # [1.9.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.8.0...v1.9.0) (2025-08-19)
 
 
