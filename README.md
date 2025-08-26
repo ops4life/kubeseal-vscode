@@ -1,7 +1,7 @@
 # Kubeseal VSCode Extension
 
 <p align="center">
-  <img src="icon.png" alt="Kubeseal Icon" width="150" style="border-radius: 15px;">
+  <img src="icon.png" alt="Kubeseal Icon" width="150" />
 </p>
 
 [![Version](https://img.shields.io/visual-studio-marketplace/v/devops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
