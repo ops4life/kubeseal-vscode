@@ -1,11 +1,25 @@
 # Kubeseal VSCode Extension
 
+<p align="center">
+  <img src="icon.png" alt="Kubeseal Icon" width="150" style="border-radius: 15px;">
+</p>
+
 [![Version](https://img.shields.io/visual-studio-marketplace/v/devops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/devops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/devops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A Visual Studio Code extension that provides easy integration with `kubeseal` for encrypting and decrypting Kubernetes secrets.
+## 📚 Table of Contents
+- [Installation](#-installation)
+- [Features](#-features)
+- [Requirements](#-requirements)
+- [Setup](#-setup)
+- [Usage](#-usage)
+- [Configuration](#-configuration)
+- [Commands](#-commands)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Links](#-links)
 
 ## 🚀 Installation
 
@@ -123,6 +137,20 @@ The extension provides the following settings:
 - `kubeseal.selectCertificate`: Select Certificate
 - `kubeseal.encodeBase64`: Encode Base64 Values
 - `kubeseal.decodeBase64`: Decode Base64 Values
+
+## 🛠️ Getting Help
+
+If you encounter any issues or have questions, feel free to:
+- Open an issue on [GitHub](https://github.com/duyluann/kubeseal-vscode/issues)
+- Start a discussion in the [Discussions tab](https://github.com/duyluann/kubeseal-vscode/discussions)
+- Email us at support@example.com
+
+## ⚠️ Known Issues
+
+- Decryption may fail if the `kubectl` context is not properly configured.
+- Ensure the `kubeseal` binary is compatible with your Kubernetes cluster version.
+
+For a complete list of changes, see the [Changelog](CHANGELOG.md).
 
 ## 🤝 Contributing
 
