@@ -10,16 +10,18 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 📚 Table of Contents
-- [Installation](#-installation)
-- [Features](#-features)
-- [Requirements](#-requirements)
-- [Setup](#-setup)
-- [Usage](#-usage)
-- [Configuration](#-configuration)
-- [Commands](#-commands)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Links](#-links)
+- [Installation](#installation)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [Getting Help](#getting-help)
+- [Known Issues](#known-issues)
+- [Contributing](#contributing)
+- [License](#license)
+- [Links](#links)
 
 ## 🚀 Installation
 
