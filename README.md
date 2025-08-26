@@ -10,18 +10,29 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 📚 Table of Contents
-- [Installation](#installation)
-- [Features](#features)
-- [Requirements](#requirements)
-- [Setup](#setup)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Commands](#commands)
-- [Getting Help](#getting-help)
-- [Known Issues](#known-issues)
-- [Contributing](#contributing)
-- [License](#license)
-- [Links](#links)
+
+- [Kubeseal VSCode Extension](#kubeseal-vscode-extension)
+  - [📚 Table of Contents](#-table-of-contents)
+  - [🚀 Installation](#-installation)
+  - [✨ Features](#-features)
+  - [📋 Requirements](#-requirements)
+  - [🛠️ Setup](#️-setup)
+  - [📖 Usage](#-usage)
+    - [🔐 Encrypting Secrets](#-encrypting-secrets)
+    - [🔓 Decrypting Secrets](#-decrypting-secrets)
+    - [🔧 Managing Certificates](#-managing-certificates)
+      - [Setting Certificate Folder](#setting-certificate-folder)
+      - [Selecting Active Certificate](#selecting-active-certificate)
+    - [📝 Base64 Encoding/Decoding](#-base64-encodingdecoding)
+      - [Encode Base64 Values](#encode-base64-values)
+      - [Decode Base64 Values](#decode-base64-values)
+  - [⚙️ Configuration](#️-configuration)
+  - [🎮 Commands](#-commands)
+  - [🛠️ Getting Help](#️-getting-help)
+  - [⚠️ Known Issues](#️-known-issues)
+  - [🤝 Contributing](#-contributing)
+  - [📄 License](#-license)
+  - [🔗 Links](#-links)
 
 ## 🚀 Installation
 
@@ -143,9 +154,10 @@ The extension provides the following settings:
 ## 🛠️ Getting Help
 
 If you encounter any issues or have questions, feel free to:
+
 - Open an issue on [GitHub](https://github.com/duyluann/kubeseal-vscode/issues)
 - Start a discussion in the [Discussions tab](https://github.com/duyluann/kubeseal-vscode/discussions)
-- Email us at support@example.com
+- Email us at <support@example.com>
 
 ## ⚠️ Known Issues
 
