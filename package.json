@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/duyluann/kubeseal-vscode.git"
     },
-    "publisher": "devops4life",
+    "publisher": "ops4life",
     "icon": "icon.png",
     "engines": {
         "node": ">=20.0.0",
