@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.0...v1.11.1) (2025-09-07)
+
+
+### Bug Fixes
+
+* update VS Code compatibility from ^1.102.0 to ^1.80.0 ([#24](https://github.com/duyluann/kubeseal-vscode/issues/24)) ([1261a24](https://github.com/duyluann/kubeseal-vscode/commit/1261a24564d8c89619772adf7da7407926e5344d))
+
 # [1.11.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.10.0...v1.11.0) (2025-08-22)
 
 
