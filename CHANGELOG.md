@@ -1,3 +1,10 @@
+## [1.11.2](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.1...v1.11.2) (2025-09-07)
+
+
+### Bug Fixes
+
+* correct publisher name in package.json from devops4life to ops4life ([50de38f](https://github.com/duyluann/kubeseal-vscode/commit/50de38f656dc8b63b7cf9b22d8b59016786ce92d))
+
 ## [1.11.1](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.0...v1.11.1) (2025-09-07)
 
 
