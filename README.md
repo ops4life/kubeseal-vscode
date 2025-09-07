@@ -4,9 +4,9 @@
   <img src="icon.png" alt="Kubeseal Icon" width="150" />
 </p>
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/devops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/devops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/devops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
+[![Version](https://img.shields.io/visual-studio-marketplace/v/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 📚 Table of Contents
@@ -176,6 +176,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=devops4life.kubeseal-vscode)
+- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
 - [GitHub Repository](https://github.com/duyluann/kubeseal-vscode)
 - [Sealed Secrets Documentation](https://github.com/bitnami-labs/sealed-secrets)
