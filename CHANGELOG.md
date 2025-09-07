@@ -1,3 +1,10 @@
+## [1.11.3](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.2...v1.11.3) (2025-09-07)
+
+
+### Bug Fixes
+
+* update publisher name in README.md from devops4life to ops4life ([#25](https://github.com/duyluann/kubeseal-vscode/issues/25)) ([2832b25](https://github.com/duyluann/kubeseal-vscode/commit/2832b256e8db2d4ad4cb3f14020eeb3f116004e7))
+
 ## [1.11.2](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.1...v1.11.2) (2025-09-07)
 
 
