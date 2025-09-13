@@ -47,6 +47,12 @@
 
 - [Download from Releases page](https://github.com/duyluann/kubeseal-vscode/releases)
 
+**Recommended Extensions:**
+
+For the best Kubernetes development experience, we recommend installing:
+
+- [Kubernetes](https://marketplace.visualstudio.com/items?itemName=ms-kubernetes-tools.vscode-kubernetes-tools) - Provides Kubernetes cluster management, syntax highlighting, and IntelliSense for Kubernetes YAML files.
+
 ## ✨ Features
 
 - **🔐 Encrypt Secrets**: Right-click on YAML files containing Kubernetes secrets to encrypt them using kubeseal
