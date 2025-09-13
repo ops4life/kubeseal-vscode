@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.3...v1.12.0) (2025-09-13)
+
+
+### Features
+
+* add video demonstration section to README.md ([#27](https://github.com/duyluann/kubeseal-vscode/issues/27)) ([1c33a95](https://github.com/duyluann/kubeseal-vscode/commit/1c33a951569525a1a11091e70dfa58277e9cb716))
+
 ## [1.11.3](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.2...v1.11.3) (2025-09-07)
 
 
