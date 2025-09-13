@@ -66,7 +66,7 @@ For the best Kubernetes development experience, we recommend installing:
 
 Watch how to use the Kubeseal VS Code extension in action:
 
-[![Kubeseal VSCode Extension Demo](https://img.youtube.com/vi/9PkAIKuJ8YE/0.jpg)](https://youtu.be/9PkAIKuJ8YE)
+[![Kubeseal VSCode Extension Demo](https://img.youtube.com/vi/NAcHxSNFhyc/0.jpg)](https://youtu.be/NAcHxSNFhyc)
 
 ## 📋 Requirements
 
