@@ -56,6 +56,12 @@
 - **🔄 Active Certificate Selection**: Click on the status bar to select which certificate to use for encryption
 - **🎯 Context Menu Integration**: Access kubeseal operations directly from the file explorer and editor context menus
 
+## 🎥 Video Demonstration
+
+Watch how to use the Kubeseal VS Code extension in action:
+
+[![Kubeseal VSCode Extension Demo](https://img.youtube.com/vi/9PkAIKuJ8YE/0.jpg)](https://youtu.be/9PkAIKuJ8YE)
+
 ## 📋 Requirements
 
 > **Important:** You must have access to your Kubernetes cluster before using this extension, especially for decryption.
