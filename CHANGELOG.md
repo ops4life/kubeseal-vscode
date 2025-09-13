@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.12.0...v1.13.0) (2025-09-13)
+
+
+### Features
+
+* add Kubernetes extension recommendation to README.md and update… ([#28](https://github.com/duyluann/kubeseal-vscode/issues/28)) ([cdaf1ce](https://github.com/duyluann/kubeseal-vscode/commit/cdaf1ce2ae01b403627a15970cbd5dd921772a2c))
+
 # [1.12.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.11.3...v1.12.0) (2025-09-13)
 
 
