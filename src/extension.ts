@@ -22,7 +22,7 @@ async function getCurrentCertificatePath(progress?: vscode.Progress<{ message?: 
             'Set Certificate Folder'
         );
         if (result === 'Open Settings') {
-            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:devops4life.kubeseal-vscode certsFolder');
+            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:ops4life.kubeseal-vscode certsFolder');
         } else if (result === 'Set Certificate Folder') {
             vscode.commands.executeCommand('kubeseal.setCertFolder');
         }
@@ -51,7 +51,7 @@ async function selectCertificate() {
             'Set Certificate Folder'
         );
         if (result === 'Open Settings') {
-            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:devops4life.kubeseal-vscode certsFolder');
+            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:ops4life.kubeseal-vscode certsFolder');
         } else if (result === 'Set Certificate Folder') {
             vscode.commands.executeCommand('kubeseal.setCertFolder');
         }

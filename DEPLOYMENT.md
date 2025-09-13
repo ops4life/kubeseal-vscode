@@ -115,8 +115,8 @@ To manually trigger a release:
 
 ### Marketplace Publishing
 - Only publishes if `MARKETPLACE_PAT` is configured
-- Uses publisher ID: `devops4life`
-- Extension ID: `devops4life.kubeseal-vscode`
+- Uses publisher ID: `ops4life`
+- Extension ID: `ops4life.kubeseal-vscode`
 - Gracefully skips if no PAT is available
 
 ### Release Assets
