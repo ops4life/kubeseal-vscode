@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/duyluann/kubeseal-vscode/compare/v1.13.0...v1.13.1) (2025-09-13)
+
+
+### Bug Fixes
+
+* change publisher ([#29](https://github.com/duyluann/kubeseal-vscode/issues/29)) ([ddc3152](https://github.com/duyluann/kubeseal-vscode/commit/ddc3152ff61bf9fa7e7b1d378b721df9df8defe8))
+
 # [1.13.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.12.0...v1.13.0) (2025-09-13)
 
 
