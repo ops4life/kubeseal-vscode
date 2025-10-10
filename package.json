@@ -18,7 +18,8 @@
     ],
     "activationEvents": [
         "onLanguage:helm",
-        "onLanguage:yaml"
+        "onLanguage:yaml",
+        "onFileSystem:k8smsx"
     ],
     "main": "./out/extension.js",
     "contributes": {
