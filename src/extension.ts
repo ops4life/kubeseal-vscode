@@ -2,14 +2,54 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 let statusBarItem: vscode.StatusBarItem;
 
+// Helper function to create cancellable exec with timeout
+async function execWithCancellation(
+    command: string,
+    token: vscode.CancellationToken,
+    timeoutMs: number = 30000 // 30 second default timeout
+): Promise<{ stdout: string; stderr: string }> {
+    return new Promise((resolve, reject) => {
+        const child = exec(command, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve({ stdout, stderr });
+            }
+        });
+
+        // Handle cancellation
+        const cancellationListener = token.onCancellationRequested(() => {
+            child.kill('SIGTERM');
+            reject(new Error('Operation was cancelled by user'));
+        });
+
+        // Handle timeout
+        const timeoutId = setTimeout(() => {
+            child.kill('SIGTERM');
+            reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+
+        // Cleanup when process completes
+        child.on('exit', () => {
+            cancellationListener.dispose();
+            clearTimeout(timeoutId);
+        });
+    });
+}
+
 // Helper to get current certificate path from folder
-async function getCurrentCertificatePath(progress?: vscode.Progress<{ message?: string; increment?: number }>): Promise<string | undefined> {
+async function getCurrentCertificatePath(
+    progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    token?: vscode.CancellationToken
+): Promise<string | undefined> {
+    // Check for cancellation
+    if (token?.isCancellationRequested) {
+        throw new Error('Operation was cancelled by user');
+    }
+
     const config = vscode.workspace.getConfiguration('kubeseal');
     const certsFolder = config.get<string>('certsFolder', '');
     const activeCertFile = config.get<string>('activeCertFile', '');
@@ -120,9 +160,9 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: "Encrypting Kubernetes Secret...",
-                cancellable: false
-            }, async (progress) => {
-                await encryptSecret(uri, progress);
+                cancellable: true
+            }, async (progress, token) => {
+                return await encryptSecret(uri, progress, token);
             });
         })
     );
@@ -132,9 +172,9 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: "Decrypting SealedSecret...",
-                cancellable: false
-            }, async (progress) => {
-                await decryptSecret(uri, progress);
+                cancellable: true
+            }, async (progress, token) => {
+                return await decryptSecret(uri, progress, token);
             });
         })
     );
@@ -144,9 +184,9 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: "Setting Certificate Folder...",
-                cancellable: false
-            }, async (progress) => {
-                await setCertificateFolder(progress);
+                cancellable: true
+            }, async (progress, token) => {
+                return await setCertificateFolder(progress, token);
             });
         })
     );
@@ -162,9 +202,9 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: "Encoding Secret Data as Base64...",
-                cancellable: false
-            }, async (progress) => {
-                await encodeBase64Values(uri, progress);
+                cancellable: true
+            }, async (progress, token) => {
+                return await encodeBase64Values(uri, progress, token);
             });
         })
     );
@@ -174,9 +214,9 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: "Decoding Base64 Secret Data...",
-                cancellable: false
-            }, async (progress) => {
-                await decodeBase64Values(uri, progress);
+                cancellable: true
+            }, async (progress, token) => {
+                return await decodeBase64Values(uri, progress, token);
             });
         })
     );
@@ -191,16 +231,31 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
-async function encryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ message?: string; increment?: number }>) {
+async function encryptSecret(
+    uri: vscode.Uri,
+    progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    token?: vscode.CancellationToken
+) {
     try {
         progress?.report({ message: "Loading configuration..." });
+
+        // Check for cancellation at key points
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
         const filePath = uri.fsPath;
         const config = vscode.workspace.getConfiguration('kubeseal');
         const kubesealPath = config.get<string>('kubesealPath', 'kubeseal');
 
         // Get certificate path using new system
-        const certPath = await getCurrentCertificatePath(progress);
+        const certPath = await getCurrentCertificatePath(progress, token);
         if (!certPath) {
+            return;
+        }
+
+        // Check for cancellation
+        if (token?.isCancellationRequested) {
             return;
         }
 
@@ -213,6 +268,10 @@ async function encryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
 
         // Read the input file
         progress?.report({ message: "Reading secret file..." });
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
         const inputContent = fs.readFileSync(filePath, 'utf8');
 
         // Check if the file contains a Secret resource
@@ -227,11 +286,16 @@ async function encryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
         const basename = path.basename(filePath, ext);
         const outputPath = path.join(dir, `${basename}-sealed${ext}`);
 
-        // Run kubeseal command
+        // Run kubeseal command with cancellation support
         progress?.report({ message: "Running kubeseal to encrypt secret..." });
         const command = `${kubesealPath} --cert "${certPath}" --format yaml < "${filePath}" > "${outputPath}"`;
 
-        await execAsync(command);
+        await execWithCancellation(command, token!);
+
+        // Check for cancellation before showing success message
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
         vscode.window.showInformationMessage(`Secret encrypted successfully: ${outputPath}`);
 
@@ -241,24 +305,35 @@ async function encryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
             'Yes', 'No'
         );
 
-        if (openResult === 'Yes') {
+        if (openResult === 'Yes' && !token?.isCancellationRequested) {
             progress?.report({ message: "Opening encrypted file..." });
             const document = await vscode.workspace.openTextDocument(outputPath);
             await vscode.window.showTextDocument(document);
         }
 
     } catch (error) {
+        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            vscode.window.showInformationMessage('Encryption operation was cancelled');
+            return;
+        }
         const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to encrypt secret: ${errorMessage}`);
     }
 }
 
-async function decryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ message?: string; increment?: number }>) {
+async function decryptSecret(
+    uri: vscode.Uri,
+    progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    token?: vscode.CancellationToken
+) {
     try {
         progress?.report({ message: "Reading secret file..." });
+
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
         const filePath = uri.fsPath;
-        const config = vscode.workspace.getConfiguration('kubeseal');
-        const kubesealPath = config.get<string>('kubesealPath', 'kubeseal');
 
         // Read the input file
         const inputContent = fs.readFileSync(filePath, 'utf8');
@@ -266,6 +341,10 @@ async function decryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
         // Check if the file contains a SealedSecret resource
         if (!inputContent.includes('kind: SealedSecret')) {
             vscode.window.showWarningMessage('This file does not appear to contain a SealedSecret');
+            return;
+        }
+
+        if (token?.isCancellationRequested) {
             return;
         }
 
@@ -281,12 +360,16 @@ async function decryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
         const namespaceMatch = inputContent.match(/namespace:\s*([^\s\n]+)/);
         const namespace = namespaceMatch ? namespaceMatch[1] : 'default';
 
-        // Get secret from cluster
+        // Get secret from cluster with cancellation support
         const clusterCommand = `kubectl get secret ${secretName} -n ${namespace} -o yaml > "${outputPath}"`;
 
         progress?.report({ message: "Getting secret from cluster..." });
 
-        await execAsync(clusterCommand);
+        await execWithCancellation(clusterCommand, token!);
+
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
         vscode.window.showInformationMessage(`Secret retrieved successfully from cluster: ${outputPath}`);
 
@@ -295,48 +378,85 @@ async function decryptSecret(uri: vscode.Uri, progress?: vscode.Progress<{ messa
             'Yes', 'No'
         );
 
-        if (openResult === 'Yes') {
+        if (openResult === 'Yes' && !token?.isCancellationRequested) {
             progress?.report({ message: "Opening decrypted file..." });
             const document = await vscode.workspace.openTextDocument(outputPath);
             await vscode.window.showTextDocument(document);
         }
 
     } catch (error) {
+        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            vscode.window.showInformationMessage('Decryption operation was cancelled');
+            return;
+        }
         const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to decrypt secret: ${errorMessage}`);
     }
 }
 
-async function setCertificateFolder(progress?: vscode.Progress<{ message?: string; increment?: number }>) {
-    progress?.report?.({ message: "Prompting for certificate folder..." });
-    const options: vscode.OpenDialogOptions = {
-        canSelectMany: false,
-        canSelectFolders: true,
-        canSelectFiles: false,
-        openLabel: 'Select Certificate Folder'
-    };
+async function setCertificateFolder(
+    progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    token?: vscode.CancellationToken
+) {
+    try {
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
-    const folderUri = await vscode.window.showOpenDialog(options);
-    if (folderUri && folderUri.length > 0) {
-        progress?.report?.({ message: "Saving certificate folder to config..." });
-        const certsFolder = folderUri[0].fsPath;
-        const config = vscode.workspace.getConfiguration('kubeseal');
-        await config.update('certsFolder', certsFolder, vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage(`Certificate folder set to: ${certsFolder}`);
-        // Clear any active cert file since we're changing folders
-        await config.update('activeCertFile', '', vscode.ConfigurationTarget.Global);
-        updateStatusBar();
+        progress?.report?.({ message: "Prompting for certificate folder..." });
+        const options: vscode.OpenDialogOptions = {
+            canSelectMany: false,
+            canSelectFolders: true,
+            canSelectFiles: false,
+            openLabel: 'Select Certificate Folder'
+        };
+
+        const folderUri = await vscode.window.showOpenDialog(options);
+
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
+        if (folderUri && folderUri.length > 0) {
+            progress?.report?.({ message: "Saving certificate folder to config..." });
+            const certsFolder = folderUri[0].fsPath;
+            const config = vscode.workspace.getConfiguration('kubeseal');
+            await config.update('certsFolder', certsFolder, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(`Certificate folder set to: ${certsFolder}`);
+            // Clear any active cert file since we're changing folders
+            await config.update('activeCertFile', '', vscode.ConfigurationTarget.Global);
+            updateStatusBar();
+        }
+    } catch (error) {
+        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            vscode.window.showInformationMessage('Certificate folder selection was cancelled');
+            return;
+        }
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`Failed to set certificate folder: ${errorMessage}`);
     }
 }
 
-async function encodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ message?: string; increment?: number }>) {
+async function encodeBase64Values(
+    uri: vscode.Uri,
+    progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    token?: vscode.CancellationToken
+) {
     try {
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
         progress?.report({ message: "Reading file..." });
         const filePath = uri.fsPath;
         const inputContent = fs.readFileSync(filePath, 'utf8');
 
         if (!inputContent.includes('kind: Secret')) {
             vscode.window.showWarningMessage('This file does not appear to contain a Kubernetes Secret');
+            return;
+        }
+
+        if (token?.isCancellationRequested) {
             return;
         }
 
@@ -356,6 +476,11 @@ async function encodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
             let newDataContent = '';
 
             for (let i = 0; i < lines.length; i++) {
+                // Check for cancellation during processing
+                if (token?.isCancellationRequested) {
+                    return;
+                }
+
                 const line = lines[i];
 
                 // Preserve empty lines and comments
@@ -491,6 +616,10 @@ async function encodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
             }
 
             if (encodedCount > 0) {
+                if (token?.isCancellationRequested) {
+                    return;
+                }
+                progress?.report({ message: "Saving encoded file..." });
                 modifiedContent = modifiedContent.replace(dataRegex, dataPrefix + newDataContent);
                 fs.writeFileSync(filePath, modifiedContent, 'utf8');
                 vscode.window.showInformationMessage(`Encoded ${encodedCount} value(s) to base64`);
@@ -502,19 +631,35 @@ async function encodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
         }
 
     } catch (error) {
+        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            vscode.window.showInformationMessage('Base64 encoding operation was cancelled');
+            return;
+        }
         const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to encode base64 values: ${errorMessage}`);
     }
 }
 
-async function decodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ message?: string; increment?: number }>) {
+async function decodeBase64Values(
+    uri: vscode.Uri,
+    progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    token?: vscode.CancellationToken
+) {
     try {
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
         progress?.report({ message: "Reading file..." });
         const filePath = uri.fsPath;
         const inputContent = fs.readFileSync(filePath, 'utf8');
 
         if (!inputContent.includes('kind: Secret')) {
             vscode.window.showWarningMessage('This file does not appear to contain a Kubernetes Secret');
+            return;
+        }
+
+        if (token?.isCancellationRequested) {
             return;
         }
 
@@ -534,6 +679,11 @@ async function decodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
             let newDataContent = '';
 
             for (const line of lines) {
+                // Check for cancellation during processing
+                if (token?.isCancellationRequested) {
+                    return;
+                }
+
                 // Preserve empty lines and comments
                 if (line.trim() === '' || line.trim().startsWith('#')) {
                     newDataContent += line + '\n';
@@ -632,6 +782,10 @@ async function decodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
             }
 
             if (decodedCount > 0) {
+                if (token?.isCancellationRequested) {
+                    return;
+                }
+                progress?.report({ message: "Saving decoded file..." });
                 modifiedContent = modifiedContent.replace(dataRegex, dataPrefix + newDataContent);
                 fs.writeFileSync(filePath, modifiedContent, 'utf8');
                 vscode.window.showInformationMessage(`Decoded ${decodedCount} base64 value(s)`);
@@ -643,6 +797,10 @@ async function decodeBase64Values(uri: vscode.Uri, progress?: vscode.Progress<{ 
         }
 
     } catch (error) {
+        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            vscode.window.showInformationMessage('Base64 decoding operation was cancelled');
+            return;
+        }
         const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to decode base64 values: ${errorMessage}`);
     }
