@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.13.1...v1.14.0) (2025-10-10)
+
+
+### Features
+
+* Update Activation Events when k8smsx custom file system scheme ([#34](https://github.com/duyluann/kubeseal-vscode/issues/34)) ([dcffdbe](https://github.com/duyluann/kubeseal-vscode/commit/dcffdbe98c255e4a11ea17cd43d1c9402c82534d))
+
 ## [1.13.1](https://github.com/duyluann/kubeseal-vscode/compare/v1.13.0...v1.13.1) (2025-09-13)
 
 
