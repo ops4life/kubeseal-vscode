@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.14.0...v1.15.0) (2025-10-10)
+
+
+### Features
+
+* Add cancellation support to certificate operations and exec commands ([#35](https://github.com/duyluann/kubeseal-vscode/issues/35)) ([0728c30](https://github.com/duyluann/kubeseal-vscode/commit/0728c3051dfa2d7b597b203fc084b4c463501462))
+
 # [1.14.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.13.1...v1.14.0) (2025-10-10)
 
 
