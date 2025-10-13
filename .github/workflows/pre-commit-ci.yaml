@@ -22,7 +22,7 @@ jobs:
         pre-commit install
         pre-commit run --all-files
 
-    - uses: stefanzweifel/git-auto-commit-action@v6
+    - uses: stefanzweifel/git-auto-commit-action@v7
       if: always()
       with:
         commit_message: "fix: Automated Changes by Pre-commit"
