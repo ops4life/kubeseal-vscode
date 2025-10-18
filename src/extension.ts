@@ -5,6 +5,26 @@ import { exec } from 'child_process';
 
 let statusBarItem: vscode.StatusBarItem;
 
+const BASE64_VALID_CHARS_REGEX = /^[A-Za-z0-9+/\-_]*={0,2}$/;
+
+function isProbablyBase64Value(value: string): boolean {
+    if (value.length < 4) {
+        return false;
+    }
+    if (!BASE64_VALID_CHARS_REGEX.test(value)) {
+        return false;
+    }
+    if (value.length % 4 !== 0 && !value.includes('=')) {
+        return false;
+    }
+    try {
+        Buffer.from(value, 'base64');
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 // Helper function to create cancellable exec with timeout
 async function execWithCancellation(
     command: string,
@@ -569,28 +589,7 @@ async function encodeBase64Values(
 
                     if (value) {
                         // Enhanced base64 detection
-                        const base64Regex = /^[A-Za-z0-9+/\-_]*={0,2}$/;
-                        const isValidBase64Length = value.length % 4 === 0 || value.includes('=');
-
-                        const isProbablyBase64 = (value: string): boolean => {
-                            if (value.length < 4) {
-                                return false;
-                            }
-                            if (!base64Regex.test(value)) {
-                                return false;
-                            }
-                            if (!isValidBase64Length) {
-                                return false;
-                            }
-                            try {
-                                Buffer.from(value, 'base64');
-                                return true;
-                            } catch {
-                                return false;
-                            }
-                        };
-
-                        if (!isProbablyBase64(value)) {
+                        if (!isProbablyBase64Value(value)) {
                             // Encode the value as base64
                             try {
                                 const encoded = Buffer.from(value, 'utf8').toString('base64');
@@ -716,28 +715,7 @@ async function decodeBase64Values(
 
                     if (value) {
                         // Enhanced base64 detection
-                        const base64Regex = /^[A-Za-z0-9+/\-_]*={0,2}$/;
-                        const isValidBase64Length = value.length % 4 === 0 || value.includes('=');
-
-                        const isProbablyBase64 = (value: string): boolean => {
-                            if (value.length < 4) {
-                                return false;
-                            }
-                            if (!base64Regex.test(value)) {
-                                return false;
-                            }
-                            if (!isValidBase64Length) {
-                                return false;
-                            }
-                            try {
-                                Buffer.from(value, 'base64');
-                                return true;
-                            } catch {
-                                return false;
-                            }
-                        };
-
-                        if (isProbablyBase64(value)) {
+                        if (isProbablyBase64Value(value)) {
                             try {
                                 const decoded = Buffer.from(value, 'base64').toString('utf8');
 
