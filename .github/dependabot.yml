@@ -1,10 +1,97 @@
 version: 2
 updates:
-  # Maintain dependencies for GitHub Actions
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "duyluann"
+    assignees:
+      - "duyluann"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      # Group all dev dependencies together
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "@typescript-eslint/*"
+          - "@vscode/*"
+          - "@semantic-release/*"
+          - "eslint"
+          - "prettier"
+          - "rimraf"
+          - "typescript"
+          - "npm-check-updates"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group semantic-release packages
+      semantic-release:
+        patterns:
+          - "@semantic-release/*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Ignore major version updates for critical packages
+    ignore:
+      - dependency-name: "@types/vscode"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/eslint-plugin"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/parser"
+        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "duyluann"
+    assignees:
+      - "duyluann"
     commit-message:
-      prefix: "chore"
+      prefix: "ci"
       include: "scope"
+    labels:
+      - "github-actions"
+      - "dependencies"
+      - "automated"
+    groups:
+      # Group common GitHub Actions
+      actions-setup:
+        patterns:
+          - "actions/checkout"
+          - "actions/setup-node"
+          - "actions/setup-python"
+          - "actions/setup-go"
+        update-types:
+          - "minor"
+          - "patch"
+      actions-security:
+        patterns:
+          - "actions/github-script"
+          - "peter-evans/create-pull-request"
+          - "actions/cache"
+        update-types:
+          - "minor"
+          - "patch"
