@@ -4,10 +4,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
+      interval: "daily"
     open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
@@ -56,10 +53,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
+      interval: "daily"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "ci"
