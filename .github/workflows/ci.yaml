@@ -71,7 +71,7 @@ jobs:
         run: vsce package --no-yarn
 
       - name: Upload VSIX artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: kubeseal-vscode-${{ github.sha }}
           path: '*.vsix'
