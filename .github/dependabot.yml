@@ -1,10 +1,41 @@
 version: 2
 updates:
-  # Maintain dependencies for GitHub Actions
+  # Enable version updates for npm packages
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    # Only ignore major version updates for critical packages
+    ignore:
+      - dependency-name: "@types/vscode"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/eslint-plugin"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/parser"
+        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 10
     commit-message:
-      prefix: "chore"
+      prefix: "ci"
       include: "scope"
+    labels:
+      - "github-actions"
+      - "dependencies"
+      - "automated"
