@@ -1,3 +1,15 @@
+# [1.16.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.15.0...v1.16.0) (2025-10-26)
+
+
+### Bug Fixes
+
+* resolve @types/vscode version conflict ([#49](https://github.com/duyluann/kubeseal-vscode/issues/49)) ([c53c959](https://github.com/duyluann/kubeseal-vscode/commit/c53c959a7b49dfec99e9e36243a6a47b7ccdffc0))
+
+
+### Features
+
+* dependency automation ([#40](https://github.com/duyluann/kubeseal-vscode/issues/40)) ([09d7923](https://github.com/duyluann/kubeseal-vscode/commit/09d79235087233ad16dcd58bc2408ea422733548))
+
 # [1.15.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.14.0...v1.15.0) (2025-10-10)
 
 
