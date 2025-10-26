@@ -9,10 +9,6 @@ updates:
       time: "09:00"
       timezone: "UTC"
     open-pull-requests-limit: 10
-    reviewers:
-      - "duyluann"
-    assignees:
-      - "duyluann"
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
@@ -65,10 +61,6 @@ updates:
       time: "09:00"
       timezone: "UTC"
     open-pull-requests-limit: 5
-    reviewers:
-      - "duyluann"
-    assignees:
-      - "duyluann"
     commit-message:
       prefix: "ci"
       include: "scope"
