@@ -9,3 +9,4 @@ README.md
 .github/workflows/release.yaml
 .gitignore
 .releaserc.json
+.github/dependabot.yml
