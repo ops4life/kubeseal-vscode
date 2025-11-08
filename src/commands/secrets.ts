@@ -29,8 +29,6 @@ export async function encryptSecret(
         if (token?.isCancellationRequested) {
             return;
         }
-        const config = vscode.workspace.getConfiguration('kubeseal');
-        const kubesealPath = config.get<string>('kubesealPath', 'kubeseal');
 
         // Get certificate path using certificate management system
         const certPath = await getCurrentCertificatePath(progress, token);
@@ -79,7 +77,7 @@ export async function encryptSecret(
             throw new Error('Cancellation token is required');
         }
 
-        await execKubeseal(kubesealPath, certPath, filePath, outputPath, token);
+        await execKubeseal(certPath, filePath, outputPath, token);
 
         // Check for cancellation before showing success message
         if (token?.isCancellationRequested) {

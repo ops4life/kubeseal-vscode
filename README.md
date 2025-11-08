@@ -152,7 +152,6 @@ The extension provides the following settings:
 
 - `kubeseal.certsFolder`: Path to the folder containing kubeseal certificate files (\*.pem, \*.crt, \*.cert)
 - `kubeseal.activeCertFile`: Filename of the currently active certificate in the certs folder
-- `kubeseal.kubesealPath`: Path to the kubeseal binary (default: "kubeseal")
 
 ## 🎮 Commands
 
