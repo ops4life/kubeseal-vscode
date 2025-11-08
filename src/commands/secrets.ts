@@ -9,6 +9,7 @@ import { execKubeseal, execKubectl } from '../utils/shell';
 import { isKubernetesSecret, isSealedSecret, extractSecretMetadata } from '../utils/yaml';
 import { validateSecretMetadata } from '../utils/validation';
 import { getCurrentCertificatePath } from './certificates';
+import { logInfo, logError } from '../utils/logger';
 
 /**
  * Command to encrypt a Kubernetes Secret using kubeseal
@@ -18,6 +19,9 @@ export async function encryptSecret(
     progress?: vscode.Progress<{ message?: string; increment?: number }>,
     token?: vscode.CancellationToken
 ): Promise<void> {
+    const filePath = uri.fsPath;
+    logInfo(`Starting encryption for file: ${filePath}`);
+
     try {
         progress?.report({ message: "Loading configuration..." });
 
@@ -25,8 +29,6 @@ export async function encryptSecret(
         if (token?.isCancellationRequested) {
             return;
         }
-
-        const filePath = uri.fsPath;
         const config = vscode.workspace.getConfiguration('kubeseal');
         const kubesealPath = config.get<string>('kubesealPath', 'kubeseal');
 
@@ -84,6 +86,7 @@ export async function encryptSecret(
             return;
         }
 
+        logInfo(`Successfully encrypted secret to: ${outputPath}`);
         vscode.window.showInformationMessage(`Secret encrypted successfully: ${outputPath}`);
 
         // Ask if user wants to open the encrypted file
@@ -100,10 +103,12 @@ export async function encryptSecret(
 
     } catch (error) {
         if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            logInfo('Encryption operation was cancelled by user');
             vscode.window.showInformationMessage('Encryption operation was cancelled');
             return;
         }
         const errorMessage = error instanceof Error ? error.message : String(error);
+        logError(`Failed to encrypt secret: ${filePath}`, error);
 
         // Provide actionable error messages
         const result = await vscode.window.showErrorMessage(
