@@ -15,9 +15,12 @@
   - [📚 Table of Contents](#-table-of-contents)
   - [🚀 Installation](#-installation)
   - [✨ Features](#-features)
+  - [🔄 How It Works](#-how-it-works)
+  - [🎥 Video Demonstration](#-video-demonstration)
   - [📋 Requirements](#-requirements)
   - [🛠️ Setup](#️-setup)
   - [📖 Usage](#-usage)
+    - [Typical Workflow](#typical-workflow)
     - [🔐 Encrypting Secrets](#-encrypting-secrets)
     - [🔓 Decrypting Secrets](#-decrypting-secrets)
     - [🔧 Managing Certificates](#-managing-certificates)
@@ -62,6 +65,90 @@ For the best Kubernetes development experience, we recommend installing:
 - **🔄 Active Certificate Selection**: Click on the status bar to select which certificate to use for encryption
 - **🎯 Context Menu Integration**: Access kubeseal operations directly from the file explorer and editor context menus
 
+## 🔄 How It Works
+
+This extension integrates with the [Bitnami Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets) workflow for securing Kubernetes secrets:
+
+### Encryption Workflow
+
+```
+┌─────────────────────┐
+│  Plain Secret YAML  │  (your-secret.yaml)
+│  kind: Secret       │
+└──────────┬──────────┘
+           │
+           │ Right-click → "Encrypt with Kubeseal"
+           │
+           ▼
+┌─────────────────────┐
+│   kubeseal CLI      │  Uses selected certificate
+│   Encryption        │  from configured folder
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ SealedSecret YAML   │  (your-secret-sealed.yaml)
+│ kind: SealedSecret  │  ✓ Safe to commit to Git
+└─────────────────────┘
+```
+
+**Key Points:**
+- Requires `kubeseal` binary in PATH
+- Uses certificate from your configured folder
+- Original secret remains unchanged
+- Creates new file with `-sealed` suffix
+- Encrypted secrets are safe to store in version control
+
+### Decryption Workflow
+
+```
+┌─────────────────────┐
+│ SealedSecret YAML   │  (deployed to cluster)
+│ kind: SealedSecret  │
+└──────────┬──────────┘
+           │
+           │ Right-click → "Decrypt Secret"
+           │
+           ▼
+┌─────────────────────┐
+│   kubectl CLI       │  Fetches from cluster using
+│   Get Secret        │  namespace and name from YAML
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Plain Secret YAML  │  (your-secret-unsealed.yaml)
+│  kind: Secret       │  Retrieved from cluster
+└─────────────────────┘
+```
+
+**Key Points:**
+- Requires `kubectl` binary in PATH
+- Requires cluster access with proper permissions
+- SealedSecret must be deployed to the cluster first
+- Extension extracts namespace/name from SealedSecret YAML
+- Creates new file with `-unsealed` suffix
+
+### Base64 Encoding/Decoding Workflow
+
+```
+Before Encoding:               After Encoding:
+┌──────────────────┐          ┌──────────────────┐
+│ kind: Secret     │          │ kind: Secret     │
+│ data:            │  Encode  │ data:            │
+│   username: admin│  ──────▶ │   username: YWRt │
+│   password: 123  │          │   password: MTIz │
+└──────────────────┘          └──────────────────┘
+
+Decoding reverses the process ◀──────
+```
+
+**Key Points:**
+- Works on local YAML files (no cluster needed)
+- Automatically detects already-encoded values
+- Preserves binary data when decoding
+- Useful before encrypting secrets
+
 ## 🎥 Video Demonstration
 
 Watch how to use the Kubeseal VS Code extension in action:
@@ -94,12 +181,48 @@ Watch how to use the Kubeseal VS Code extension in action:
 
 > **Note:** You must have access to your Kubernetes cluster before using the extension. Decryption will not work unless your `kubectl` is configured and you have the necessary permissions.
 
+### Typical Workflow
+
+Here's a typical workflow for managing secrets with this extension:
+
+1. **Prepare your secret** - Create a Kubernetes Secret YAML file with plain text values
+2. **Encode values (optional)** - Use "Encode Base64 Values" if your values are in plain text
+3. **Set up certificate** - Configure your certificate folder and select an active certificate
+4. **Encrypt** - Use "Encrypt with Kubeseal" to create a SealedSecret
+5. **Commit safely** - The encrypted SealedSecret can be safely committed to Git
+6. **Deploy** - Apply the SealedSecret to your Kubernetes cluster
+7. **Decrypt (if needed)** - Use "Decrypt Secret" to retrieve the original secret from the cluster
+
 ### 🔐 Encrypting Secrets
 
 1. Create a Kubernetes secret YAML file
 2. Right-click on the file in the explorer or editor
 3. Select "Encrypt with Kubeseal"
 4. The encrypted file will be saved with `-sealed` suffix
+
+**Example:**
+```yaml
+# input: my-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+  namespace: default
+data:
+  username: YWRtaW4=
+  password: cGFzc3dvcmQ=
+
+# output: my-secret-sealed.yaml
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: my-secret
+  namespace: default
+spec:
+  encryptedData:
+    username: AgBy3i4OJSWK+PiTySYZ...
+    password: AgAKqjbxK9...
+```
 
 ### 🔓 Decrypting Secrets
 
@@ -108,8 +231,34 @@ Watch how to use the Kubeseal VS Code extension in action:
 3. The extension will retrieve the actual secret from your Kubernetes cluster using `kubectl`
 4. The decrypted secret will be saved with `-unsealed` suffix
 
-**Note**: This requires that:
+**Example:**
+```yaml
+# input: my-secret-sealed.yaml (must be deployed to cluster)
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: my-secret
+  namespace: default
+spec:
+  encryptedData:
+    username: AgBy3i4OJSWK+PiTySYZ...
+    password: AgAKqjbxK9...
 
+# Extension extracts: namespace="default", name="my-secret"
+# Runs: kubectl get secret my-secret -n default -o yaml
+
+# output: my-secret-unsealed.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+  namespace: default
+data:
+  username: YWRtaW4=
+  password: cGFzc3dvcmQ=
+```
+
+**Requirements:**
 - The sealed secret has been deployed to your cluster
 - Your `kubectl` is configured to access the correct cluster
 - You have permissions to read secrets in the target namespace
@@ -140,11 +289,34 @@ The extension provides utilities for working with base64 encoded values in Kuber
 2. Select **"Encode Base64 Values"**
 3. All plain text values in the `data` field will be base64 encoded
 
+**Example:**
+```yaml
+# Before encoding:
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+data:
+  username: admin        # plain text
+  password: password123  # plain text
+
+# After encoding:
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+data:
+  username: YWRtaW4=           # base64 encoded
+  password: cGFzc3dvcmQxMjM=   # base64 encoded
+```
+
 #### Decode Base64 Values
 
 1. Right-click on a Kubernetes secret YAML file
 2. Select **"Decode Base64 Values"**
 3. All base64 encoded values in the `data` field will be decoded to plain text
+
+**Note:** The extension automatically detects which values are already encoded/decoded and skips them to prevent double encoding/decoding.
 
 ## ⚙️ Configuration
 
