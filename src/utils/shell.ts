@@ -76,14 +76,12 @@ export async function execWithCancellation(
 
 /**
  * Executes kubeseal command to encrypt a secret
- * @param kubesealPath Path to kubeseal binary
  * @param certPath Path to certificate file
  * @param inputPath Path to input YAML file
  * @param outputPath Path to output YAML file
  * @param token Cancellation token
  */
 export async function execKubeseal(
-    kubesealPath: string,
     certPath: string,
     inputPath: string,
     outputPath: string,
@@ -93,7 +91,7 @@ export async function execKubeseal(
     const inputContent = await fs.readFile(inputPath, 'utf8');
 
     // Execute kubeseal with stdin/stdout
-    const child = spawn(kubesealPath, ['--cert', certPath, '--format', 'yaml'], {
+    const child = spawn('kubeseal', ['--cert', certPath, '--format', 'yaml'], {
         stdio: ['pipe', 'pipe', 'pipe']
     });
 

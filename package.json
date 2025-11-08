@@ -107,11 +107,6 @@
                     "type": "string",
                     "default": "",
                     "description": "Filename of the currently active certificate in the certs folder"
-                },
-                "kubeseal.kubesealPath": {
-                    "type": "string",
-                    "default": "kubeseal",
-                    "description": "Path to the kubeseal binary"
                 }
             }
         }

@@ -125,7 +125,6 @@ src/
 ```typescript
 kubeseal.certsFolder: string       // Path to certificate folder
 kubeseal.activeCertFile: string    // Filename of active certificate
-kubeseal.kubesealPath: string      // Path to kubeseal binary (default: "kubeseal")
 ```
 
 ## Release Process
