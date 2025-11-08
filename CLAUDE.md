@@ -134,8 +134,33 @@ This project uses semantic-release for automatic versioning based on conventiona
 **Commit message format:**
 - `fix:` - Patch version bump (e.g., 1.0.0 → 1.0.1)
 - `feat:` - Minor version bump (e.g., 1.0.0 → 1.1.0)
-- `feat!:` or `BREAKING CHANGE:` - Major version bump (e.g., 1.0.0 → 2.0.0)
+- `feat!:` or `fix!:` or `BREAKING CHANGE:` in footer - Major version bump (e.g., 1.0.0 → 2.0.0)
 - Other types (`docs:`, `chore:`, `refactor:`, etc.) - No version bump
+
+**Breaking changes:**
+Breaking changes MUST be indicated in the commit message. There are two ways to do this:
+
+1. Add `!` after the type/scope (e.g., `feat!:`, `fix!:`, `refactor!:`)
+   ```
+   feat!: require kubeseal binary in PATH
+
+   Remove fallback to bundled kubeseal binary
+   ```
+
+2. Add `BREAKING CHANGE:` in the commit footer
+   ```
+   feat: update encryption algorithm
+
+   BREAKING CHANGE: Sealed secrets created with older versions
+   will need to be re-encrypted with the new algorithm.
+   ```
+
+**When to mark as breaking change:**
+- Removing or renaming public APIs, commands, or configuration options
+- Changing default behavior that users depend on
+- Requiring new dependencies or system requirements
+- Incompatible data format changes
+- Removing support for older versions of tools/platforms
 
 **Release workflow:**
 1. Push commits to `main` branch with conventional commit messages
