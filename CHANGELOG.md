@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.16.0...v1.17.0) (2025-11-08)
+
+
+### Features
+
+* add output logging ([#58](https://github.com/duyluann/kubeseal-vscode/issues/58)) ([2e32d0d](https://github.com/duyluann/kubeseal-vscode/commit/2e32d0d3157ec94a176c4276a960864891efec05))
+
 # [1.16.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.15.0...v1.16.0) (2025-10-26)
 
 
