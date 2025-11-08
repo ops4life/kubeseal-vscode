@@ -17,6 +17,8 @@ jobs:
         )
       ) || (
         github.actor == 'dependabot[bot]'
+      ) || (
+        github.actor == 'renovate[bot]'
       )
     steps:
       - uses: peter-evans/enable-pull-request-automerge@v3

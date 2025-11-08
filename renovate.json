@@ -1,0 +1,87 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":automergePatch",
+    ":automergeMinor"
+  ],
+  "schedule": ["after 10pm every weekday", "before 5am every weekday", "every weekend"],
+  "timezone": "UTC",
+  "labels": ["dependencies", "automated"],
+  "rangeStrategy": "bump",
+  "commitMessagePrefix": "chore(deps):",
+  "separateMajorMinor": true,
+  "separateMinorPatch": false,
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 0,
+  "packageRules": [
+    {
+      "description": "Group all non-major npm dependencies together",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm non-major dependencies",
+      "automerge": true
+    },
+    {
+      "description": "Disable GitHub Actions (handled by Dependabot)",
+      "matchManagers": ["github-actions"],
+      "enabled": false
+    },
+    {
+      "description": "Separate major version updates and disable automerge",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update"]
+    },
+    {
+      "description": "Pin @types/vscode to avoid breaking changes",
+      "matchPackageNames": ["@types/vscode"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Be cautious with TypeScript major updates",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Be cautious with ESLint major updates",
+      "matchPackageNames": ["eslint", "@typescript-eslint/eslint-plugin", "@typescript-eslint/parser"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Auto-update semantic-release plugins",
+      "matchPackagePatterns": ["^@semantic-release/"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "High priority security updates",
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "labels": ["dependencies", "security"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "dependencies"],
+    "automerge": false
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 5am on monday"],
+    "commitMessageAction": "Update",
+    "commitMessagePrefix": "chore(deps):",
+    "automerge": true
+  },
+  "npm": {
+    "rangeStrategy": "bump"
+  },
+  "ignoreDeps": [],
+  "ignorePaths": ["**/node_modules/**", "**/out/**"]
+}
