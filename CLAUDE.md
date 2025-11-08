@@ -146,6 +146,40 @@ This project uses semantic-release for automatic versioning based on conventiona
 **Manual release trigger:**
 Go to GitHub Actions → "Release and Publish Extension" → "Run workflow"
 
+## Git Workflow
+
+**IMPORTANT: Always use feature branches - NEVER commit directly to `main`**
+
+When implementing features, bug fixes, or making any code changes:
+
+1. **Create a feature branch** with conventional naming:
+   - Features: `feat/feature-name`
+   - Bug fixes: `fix/bug-name`
+   - Documentation: `docs/description`
+   - Refactoring: `refactor/description`
+
+2. **Commit changes** to the feature branch with conventional commit messages
+
+3. **Push the feature branch** to remote
+
+4. **Create a Pull Request** for review before merging to `main`
+
+Example workflow:
+```bash
+git checkout -b feat/new-feature
+# Make changes
+git add .
+git commit -m "feat: add new feature"
+git push -u origin feat/new-feature
+# Create PR on GitHub
+```
+
+This ensures:
+- All changes go through CI checks
+- Code review process is followed
+- Clean git history on `main` branch
+- Protection of the main branch
+
 ## Code Style
 
 - TypeScript with strict mode enabled
