@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/duyluann/kubeseal-vscode/compare/v2.1.0...v2.1.1) (2025-11-08)
+
+
+### Bug Fixes
+
+* bundle js-yaml dependency in extension package ([#66](https://github.com/duyluann/kubeseal-vscode/issues/66)) ([b2bb08d](https://github.com/duyluann/kubeseal-vscode/commit/b2bb08da7b03390fe06e62686626c22f1ee381af))
+
 # [2.1.0](https://github.com/duyluann/kubeseal-vscode/compare/v2.0.0...v2.1.0) (2025-11-08)
 
 
