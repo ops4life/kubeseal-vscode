@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/duyluann/kubeseal-vscode/compare/v2.0.0...v2.1.0) (2025-11-08)
+
+
+### Features
+
+* automated dependency updates ([#63](https://github.com/duyluann/kubeseal-vscode/issues/63)) ([ae5f5d3](https://github.com/duyluann/kubeseal-vscode/commit/ae5f5d3c9299852b1f69e980ca2cc0c72c5d6fac))
+
 # [2.0.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.18.0...v2.0.0) (2025-11-08)
 
 # [1.18.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.17.1...v1.18.0) (2025-11-08)
