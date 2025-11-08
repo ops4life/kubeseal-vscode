@@ -1,3 +1,11 @@
+## [1.17.1](https://github.com/duyluann/kubeseal-vscode/compare/v1.17.0...v1.17.1) (2025-11-08)
+
+
+### Bug Fixes
+
+* add conventional-changelog-conventionalcommits dependency ([48c347b](https://github.com/duyluann/kubeseal-vscode/commit/48c347bbf1d7d7f21cceb4c7eeb3aeaf4ac8b7bf))
+* add conventionalcommits preset to detect breaking changes ([#59](https://github.com/duyluann/kubeseal-vscode/issues/59)) ([8a4ff4c](https://github.com/duyluann/kubeseal-vscode/commit/8a4ff4c92d3157080af14ded9ba035a6221a7cf9))
+
 # [1.17.0](https://github.com/duyluann/kubeseal-vscode/compare/v1.16.0...v1.17.0) (2025-11-08)
 
 
