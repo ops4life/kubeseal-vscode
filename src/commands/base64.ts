@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { promises as fs } from 'fs';
 import { parseSecret, toYaml, isKubernetesSecret } from '../utils/yaml';
 import { isProbablyBase64Value } from '../utils/validation';
+import { logInfo, logError } from '../utils/logger';
 
 /**
  * Command to encode base64 values in a Kubernetes Secret
@@ -15,13 +16,15 @@ export async function encodeBase64Values(
     progress?: vscode.Progress<{ message?: string; increment?: number }>,
     token?: vscode.CancellationToken
 ): Promise<void> {
+    const filePath = uri.fsPath;
+    logInfo(`Starting base64 encoding for file: ${filePath}`);
+
     try {
         if (token?.isCancellationRequested) {
             return;
         }
 
         progress?.report({ message: "Reading file..." });
-        const filePath = uri.fsPath;
         const inputContent = await fs.readFile(filePath, 'utf8');
 
         if (!isKubernetesSecret(inputContent)) {
@@ -63,16 +66,20 @@ export async function encodeBase64Values(
             progress?.report({ message: "Saving encoded file..." });
             const outputYaml = toYaml(secret);
             await fs.writeFile(filePath, outputYaml, 'utf8');
+            logInfo(`Successfully encoded ${encodedCount} value(s) to base64 in ${filePath}`);
             vscode.window.showInformationMessage(`Encoded ${encodedCount} value(s) to base64`);
         } else {
+            logInfo(`All values in ${filePath} are already base64 encoded`);
             vscode.window.showInformationMessage('All values in "data" are already base64 encoded');
         }
 
     } catch (error) {
         if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            logInfo(`Base64 encoding cancelled for ${filePath}`);
             vscode.window.showInformationMessage('Base64 encoding operation was cancelled');
             return;
         }
+        logError(`Failed to encode base64 values in ${filePath}`, error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to encode base64 values: ${errorMessage}`);
     }
@@ -86,13 +93,15 @@ export async function decodeBase64Values(
     progress?: vscode.Progress<{ message?: string; increment?: number }>,
     token?: vscode.CancellationToken
 ): Promise<void> {
+    const filePath = uri.fsPath;
+    logInfo(`Starting base64 decoding for file: ${filePath}`);
+
     try {
         if (token?.isCancellationRequested) {
             return;
         }
 
         progress?.report({ message: "Reading file..." });
-        const filePath = uri.fsPath;
         const inputContent = await fs.readFile(filePath, 'utf8');
 
         if (!isKubernetesSecret(inputContent)) {
@@ -145,16 +154,20 @@ export async function decodeBase64Values(
             progress?.report({ message: "Saving decoded file..." });
             const outputYaml = toYaml(secret);
             await fs.writeFile(filePath, outputYaml, 'utf8');
+            logInfo(`Successfully decoded ${decodedCount} base64 value(s) in ${filePath}`);
             vscode.window.showInformationMessage(`Decoded ${decodedCount} base64 value(s)`);
         } else {
+            logInfo(`No base64 encoded values found in ${filePath}`);
             vscode.window.showInformationMessage('No base64 encoded values found in "data" field');
         }
 
     } catch (error) {
         if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+            logInfo(`Base64 decoding cancelled for ${filePath}`);
             vscode.window.showInformationMessage('Base64 decoding operation was cancelled');
             return;
         }
+        logError(`Failed to decode base64 values in ${filePath}`, error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to decode base64 values: ${errorMessage}`);
     }

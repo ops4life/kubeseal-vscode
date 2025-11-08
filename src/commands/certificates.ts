@@ -5,6 +5,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logInfo, logError } from '../utils/logger';
 
 /**
  * Gets the current certificate path from configuration
@@ -54,10 +55,12 @@ export async function getCurrentCertificatePath(
  * Command to select active certificate from certs folder
  */
 export async function selectCertificate(): Promise<void> {
+    logInfo('Selecting certificate');
     const config = vscode.workspace.getConfiguration('kubeseal');
     const certsFolder = config.get<string>('certsFolder', '');
 
     if (!certsFolder) {
+        logError('No certificate folder configured');
         const result = await vscode.window.showErrorMessage(
             'No certificate folder configured. Please configure it first.',
             'Open Settings',
@@ -91,6 +94,7 @@ export async function selectCertificate(): Promise<void> {
 
     if (selected) {
         await config.update('activeCertFile', selected, vscode.ConfigurationTarget.Global);
+        logInfo(`Active certificate set to: ${selected}`);
         vscode.window.showInformationMessage(`Active certificate set to '${selected}'.`);
     }
 }

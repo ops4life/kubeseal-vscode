@@ -8,12 +8,15 @@ import { encryptSecret, decryptSecret } from './commands/secrets';
 import { encodeBase64Values, decodeBase64Values } from './commands/base64';
 import { selectCertificate, setCertificateFolder } from './commands/certificates';
 import { createStatusBarItem, updateStatusBar } from './ui/statusBar';
+import { initializeLogger, logInfo } from './utils/logger';
 
 /**
  * Extension activation
  */
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Kubeseal VSCode extension is now active!');
+    // Initialize logging
+    initializeLogger(context);
+    logInfo('Kubeseal VSCode extension activated');
 
     // Create and initialize status bar item
     createStatusBarItem(context);
