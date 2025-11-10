@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a Question
+    url: https://github.com/YOUR-USERNAME/YOUR-REPO/discussions/new?category=q-a
+    about: Ask questions and discuss ideas with the community
+  - name: Security Vulnerability
+    url: https://github.com/YOUR-USERNAME/YOUR-REPO/security/advisories/new
+    about: Report a security vulnerability privately

@@ -2,217 +2,163 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Repository Purpose
 
-This is a VS Code extension that integrates Kubeseal (Bitnami Sealed Secrets) into VS Code, allowing users to encrypt/decrypt Kubernetes secrets and encode/decode base64 values directly from the editor.
+This is a GitHub repository template providing standardized starting point for new projects with pre-configured best practices, automated workflows, and tooling.
 
-**Key dependencies:**
-- Requires `kubeseal` binary in PATH for encryption operations
-- Requires `kubectl` binary in PATH for decryption operations (fetches from cluster)
-- Targets Node.js 20+ and VS Code 1.80.0+
+## Development Workflow
+
+**CRITICAL:** Never commit directly to the `main` branch.
+
+**Always create a feature branch:**
+
+```bash
+git checkout -b feat/your-feature-name
+# OR
+git checkout -b fix/bug-description
+# OR
+git checkout -b docs/documentation-update
+```
+
+After implementing changes, create a pull request for review. The main branch is protected and requires:
+
+- PR review and approval
+- All CI checks passing (lint, tests, security scans)
+- Conventional Commits format for PR title
+
+## Commit Message Convention
+
+**CRITICAL:** All commits and PR titles MUST follow Conventional Commits format:
+
+```
+<type>(<scope>): <subject>
+```
+
+**Allowed Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `revert`
+
+**Validation Rules (enforced by CI):**
+
+- Subject must start with alphabetic character
+- Scope is optional
+- Use imperative mood ("add feature" not "added feature")
+- PR titles are automatically validated with sticky comments on errors
 
 ## Development Commands
 
-### Building and Testing
+**Install pre-commit hooks (required before first commit):**
+
 ```bash
-# Compile TypeScript to JavaScript (output: out/)
-npm run compile
-
-# Watch mode for development
-npm run watch
-
-# Run tests
-npm test
-
-# Build for production (used before publishing)
-npm run vscode:prepublish
+pre-commit install
 ```
 
-### Linting and Formatting
+**Run all hooks manually:**
+
 ```bash
-# Run ESLint
-npm run lint
-
-# Auto-fix ESLint issues
-npm run lint:fix
-
-# Format code with Prettier
-npm run format
-
-# Check formatting without modifying files
-npm run format:check
+pre-commit run --all-files
 ```
 
-### Packaging and Publishing
+**Run specific hook:**
+
 ```bash
-# Package extension as VSIX file
-npm run package
-
-# Clean build artifacts
-npm run clean
+pre-commit run gitleaks --all-files
 ```
 
-## Architecture
+**Active Hooks:**
 
-### Extension Structure
+- **Basic**: trailing-whitespace, end-of-file-fixer, check-yaml, check-json, check-toml
+- **Security**: gitleaks (--verbose), detect-private-key, check-added-large-files (max 1MB)
+- **Quality**: check-merge-conflict, check-case-conflict, mixed-line-ending (fix to LF)
+- **Linting**: markdownlint (auto-fix), yamllint (strict mode)
 
-The extension is organized into a modular structure for maintainability and testability:
+## Secret Scanning (Gitleaks)
 
-```
-src/
-├── extension.ts              # Entry point, command registration
-├── commands/
-│   ├── base64.ts            # Base64 encode/decode commands
-│   ├── certificates.ts      # Certificate management commands
-│   └── secrets.ts           # Encrypt/decrypt commands
-├── types/
-│   └── kubernetes.ts        # TypeScript type definitions for K8s resources
-├── ui/
-│   └── statusBar.ts         # Status bar management
-└── utils/
-    ├── shell.ts             # Shell command execution (uses spawn for security)
-    ├── validation.ts        # Input validation and security checks
-    └── yaml.ts              # YAML parsing using js-yaml library
-```
+**Runs:** Pre-commit hook + CI on PRs/pushes to main/master
 
-**Commands registered:**
-- `kubeseal.encrypt` - Encrypts a Kubernetes Secret using kubeseal with the active certificate
-- `kubeseal.decrypt` - Retrieves the original secret from the cluster using kubectl
-- `kubeseal.setCertFolder` - Opens folder picker to configure certificate directory
-- `kubeseal.selectCertificate` - Shows quick pick menu to select active certificate from configured folder
-- `kubeseal.encodeBase64` - Encodes plain text values in Secret's `data` field to base64
-- `kubeseal.decodeBase64` - Decodes base64 values in Secret's `data` field to plain text
+**Allowlisted (`.gitleaks.toml`):**
 
-**Core concepts:**
+- Documentation files: `*.md`, `*.txt`, `*.rst`, `LICENSE`, `CHANGELOG.md`
+- Example secrets in docs (e.g., `AKIA[0-9A-Z]{16}`, `ghp_[0-9a-zA-Z]{36}`, test passwords)
 
-1. **Certificate Management System** (`commands/certificates.ts`):
-   - Users configure a folder containing multiple certificate files (`.pem`, `.crt`, `.cert`)
-   - One certificate is marked as "active" and used for all encryption operations
-   - Status bar item shows currently active certificate and provides quick access to switch certificates
-   - Configuration stored in workspace settings: `kubeseal.certsFolder` and `kubeseal.activeCertFile`
+**Add custom rules:** Edit `[[rules]]` section in `.gitleaks.toml`
 
-2. **Security-First Shell Execution** (`utils/shell.ts`):
-   - Uses `spawn()` instead of `exec()` to prevent command injection vulnerabilities
-   - All shell commands use parameterized execution with proper argument separation
-   - Input validation via `utils/validation.ts` ensures K8s names follow RFC 1123 DNS label standard
-   - All commands support cancellation via VS Code's cancellation token
-   - Default timeout: 30 seconds for shell commands
+## Automated Releases
 
-3. **YAML Processing** (`utils/yaml.ts`):
-   - Uses `js-yaml` library for robust YAML parsing instead of fragile regex
-   - Type-safe parsing with TypeScript interfaces defined in `types/kubernetes.ts`
-   - Handles complex YAML structures correctly including nested objects and arrays
+**Trigger:** Pushes to main branch (or manual workflow_dispatch)
 
-4. **File Naming Convention**:
-   - Encrypted files: `{original-name}-sealed.yaml`
-   - Decrypted files: `{original-name}-unsealed.yaml`
+**Version Bumping:**
 
-5. **Decryption via Cluster** (`commands/secrets.ts`):
-   - Decryption extracts the secret name and namespace from the SealedSecret YAML using `extractSecretMetadata()`
-   - Validates metadata to prevent command injection before executing kubectl
-   - Uses `kubectl get secret` to retrieve the actual secret from the cluster
-   - This means decryption requires cluster access and that the SealedSecret has been deployed
+- `fix` → Patch (1.0.x)
+- `feat` → Minor (1.x.0)
+- `BREAKING CHANGE` in body → Major (x.0.0)
 
-6. **Base64 Handling** (`commands/base64.ts`, `utils/validation.ts`):
-   - `isProbablyBase64Value()` function uses heuristics to detect if a value is already base64 encoded
-   - Uses js-yaml for parsing instead of regex-based YAML manipulation
-   - Encoding: Converts plain text to base64, skips already-encoded values
-   - Decoding: Converts base64 to plain text, preserves binary data as base64
-   - Detects printable vs binary content to determine if decoding should be performed
+**Process:** Analyzes commits → Bumps version → Updates CHANGELOG.md → Creates GitHub release → Commits changelog with `chore(release): version X.Y.Z [skip ci]`
 
-### Configuration Settings
+**Config:** `.releaserc.json` (branches: main/master, plugins: commit-analyzer, release-notes-generator, github, changelog, git)
 
-```typescript
-kubeseal.certsFolder: string       // Path to certificate folder
-kubeseal.activeCertFile: string    // Filename of active certificate
-```
+## CI/CD Workflows
 
-## Release Process
+**On PRs:**
 
-This project uses semantic-release for automatic versioning based on conventional commit messages:
+- `lint-pr.yaml` - Validates PR titles (Conventional Commits format, adds sticky comment on errors)
+- `deps-review.yaml` - Reviews dependency changes
+- `gitleaks.yaml` - Scans for secrets
+- `codeql.yaml` - CodeQL security analysis (JavaScript, Python)
 
-**Commit message format:**
-- `fix:` - Patch version bump (e.g., 1.0.0 → 1.0.1)
-- `feat:` - Minor version bump (e.g., 1.0.0 → 1.1.0)
-- `feat!:` or `fix!:` or `BREAKING CHANGE:` in footer - Major version bump (e.g., 1.0.0 → 2.0.0)
-- Other types (`docs:`, `chore:`, `refactor:`, etc.) - No version bump
+**On main branch:**
 
-**Breaking changes:**
-Breaking changes MUST be indicated in the commit message. There are two ways to do this:
+- `release.yaml` - Automated semantic-release (also manual via workflow_dispatch)
+- `codeql.yaml` - Weekly scheduled security scans (Mondays at 00:00 UTC)
 
-1. Add `!` after the type/scope (e.g., `feat!:`, `fix!:`, `refactor!:`)
-   ```
-   feat!: require kubeseal binary in PATH
+**Automated Maintenance:**
 
-   Remove fallback to bundled kubeseal binary
-   ```
+- `pre-commit-auto-update.yaml` - Updates hooks
+- `stale.yaml` - Manages stale issues/PRs
+- `template-repo-sync.yaml` - Syncs template updates
+- `automerge.yaml` - Auto-merges PRs from dependabot and GitHub Actions bot
+- Dependabot - Daily GitHub Actions dependency updates with `chore(deps):` commits
 
-2. Add `BREAKING CHANGE:` in the commit footer
-   ```
-   feat: update encryption algorithm
+## Template Sync
 
-   BREAKING CHANGE: Sealed secrets created with older versions
-   will need to be re-encrypted with the new algorithm.
-   ```
-
-**When to mark as breaking change:**
-- Removing or renaming public APIs, commands, or configuration options
-- Changing default behavior that users depend on
-- Requiring new dependencies or system requirements
-- Incompatible data format changes
-- Removing support for older versions of tools/platforms
-
-**Release workflow:**
-1. Push commits to `main` branch with conventional commit messages
-2. GitHub Actions workflow automatically runs semantic-release
-3. If version bump is needed: Updates package.json, creates GitHub release, uploads VSIX, publishes to marketplace (if PAT configured)
-4. If no version bump: Workflow completes without creating a release
-
-**Manual release trigger:**
-Go to GitHub Actions → "Release and Publish Extension" → "Run workflow"
-
-## Git Workflow
-
-**IMPORTANT: Always use feature branches - NEVER commit directly to `main`**
-
-When implementing features, bug fixes, or making any code changes:
-
-1. **Create a feature branch** with conventional naming:
-   - Features: `feat/feature-name`
-   - Bug fixes: `fix/bug-name`
-   - Documentation: `docs/description`
-   - Refactoring: `refactor/description`
-
-2. **Commit changes** to the feature branch with conventional commit messages
-
-3. **Push the feature branch** to remote
-
-4. **Create a Pull Request** for review before merging to `main`
-
-Example workflow:
-```bash
-git checkout -b feat/new-feature
-# Make changes
-git add .
-git commit -m "feat: add new feature"
-git push -u origin feat/new-feature
-# Create PR on GitHub
-```
-
-This ensures:
-- All changes go through CI checks
-- Code review process is followed
-- Clean git history on `main` branch
-- Protection of the main branch
+When syncing template updates, files listed in `.templatesyncignore` are preserved (issue templates, VSCode config, pre-commit config, EditorConfig, CHANGELOG, CODEOWNERS, LICENSE, README, this file).
 
 ## Code Style
 
-- TypeScript with strict mode enabled
-- ESLint configuration uses `@typescript-eslint/recommended`
-- Naming convention: camelCase for imports
-- Semicolons required
-- Curly braces required for control structures
-- Use `===` for equality checks
-- Use `unknown` instead of `any` for type safety
-- Use async/await with `promises as fs` for file operations instead of sync methods
-- Prefer `spawn()` over `exec()` for shell commands to prevent injection attacks
+**EditorConfig:**
+
+- Indent: 2 spaces
+- Charset: UTF-8
+- Line endings: LF
+- Trim trailing whitespace (except `.diff`, `.md`)
+- Insert final newline
+
+**VSCode Settings:**
+
+- Format on save enabled (Prettier)
+- Auto-fix on save
+- Git auto-fetch enabled
+- Excluded from search: node_modules, build, dist, venv, pycache, coverage
+
+**Git Attributes:**
+
+- Auto-detect text files with LF line endings
+- Language-specific diff drivers (markdown, JSON, YAML, Python, JavaScript)
+- Binary file handling for images, archives, fonts
+
+## Project Files
+
+**Security & Contributing:**
+
+- `SECURITY.md` - Vulnerability disclosure process and security measures
+- `CONTRIBUTING.md` - Contribution guidelines, workflow, and code style
+
+**Issue Templates:**
+
+- Bug Report (`bug_report.md`)
+- Feature Request (`feature_request.md`)
+- Documentation Issue (`documentation.md`)
+- Template config (`config.yml`) - Links to discussions and security advisories
+
+**Configuration:**
+
+- `.gitattributes` - Line ending and diff behavior
+- `.gitignore` - Comprehensive ignore patterns for Python, Node.js, IDEs, OS files
