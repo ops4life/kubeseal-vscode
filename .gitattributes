@@ -1,0 +1,74 @@
+# Auto detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Windows specific
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Documents
+*.md text diff=markdown
+*.adoc text
+*.rst text
+*.txt text
+
+# Code
+*.json text diff=json
+*.yaml text diff=yaml
+*.yml text diff=yaml
+*.xml text diff=xml
+*.toml text
+*.py text diff=python
+*.js text diff=javascript
+*.ts text diff=javascript
+*.jsx text diff=javascript
+*.tsx text diff=javascript
+*.html text diff=html
+*.css text diff=css
+*.scss text diff=css
+
+# Configuration files
+.gitignore text
+.gitattributes text
+.editorconfig text
+Makefile text
+
+# Binary files
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.webp binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.7z binary
+*.rar binary
+
+# Exclude files from export
+.gitattributes export-ignore
+.gitignore export-ignore
+.github export-ignore
+.vscode export-ignore

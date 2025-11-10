@@ -1,0 +1,57 @@
+name: CodeQL Analysis
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run at 00:00 UTC every Monday
+    - cron: '0 0 * * 1'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Define languages to analyze
+        # Supported: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift'
+        # Add or remove languages based on your project
+        language: [ 'javascript', 'python' ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        continue-on-error: true
+        with:
+          languages: ${{ matrix.language }}
+          # Override auto-detection of languages
+          # queries: security-extended,security-and-quality
+
+      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift)
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+        continue-on-error: true
+
+      # If autobuild fails, replace with manual build steps:
+      # - name: Build
+      #   run: |
+      #     make bootstrap
+      #     make release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        continue-on-error: true
+        with:
+          category: "/language:${{ matrix.language }}"
