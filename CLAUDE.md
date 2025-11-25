@@ -184,6 +184,8 @@ When implementing features, bug fixes, or making any code changes:
    - Refactoring: `refactor/description`
 
 2. **Commit changes** to the feature branch with conventional commit messages
+   - Do NOT include AI attribution (e.g., "Generated with Claude Code") in commit messages
+   - Commit messages should be clean and professional without AI-related footers
 
 3. **Push the feature branch** to remote
 
