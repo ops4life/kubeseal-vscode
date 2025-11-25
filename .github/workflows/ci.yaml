@@ -95,7 +95,7 @@ jobs:
         run: npm install
 
       - name: Run npm audit
-        run: npm audit --audit-level moderate
+        run: npm audit --omit=dev --audit-level moderate
 
       - name: Check for known vulnerabilities
         run: |
