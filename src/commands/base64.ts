@@ -133,6 +133,7 @@ export async function decodeBase64Values(
                         // Binary data typically contains null bytes or high concentration of control characters
                         const isBinary =
                             decoded.includes('\0') || // Contains null bytes
+                            // eslint-disable-next-line no-control-regex
                             /[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(decoded); // Contains control chars (except tab, newline, carriage return)
 
                         if (!isBinary) {
