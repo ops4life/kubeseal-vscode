@@ -129,16 +129,18 @@ export async function decodeBase64Values(
                     try {
                         const decoded = Buffer.from(value, 'base64').toString('utf8');
 
-                        // Check if decoded content is readable/printable text
-                        const printableRegex = /^[\t\n\r\x20-\x7E]*$/u;
-                        const isPrintable = printableRegex.test(decoded);
+                        // Check if decoded content is text or binary
+                        // Binary data typically contains null bytes or high concentration of control characters
+                        const isBinary =
+                            decoded.includes('\0') || // Contains null bytes
+                            /[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(decoded); // Contains control chars (except tab, newline, carriage return)
 
-                        if (isPrintable) {
-                            // Content is readable text, decode it
+                        if (!isBinary) {
+                            // Content is readable text (including Unicode), decode it
                             secret.data[key] = decoded;
                             decodedCount++;
                         }
-                        // If not printable (binary), keep as base64
+                        // If binary, keep as base64
                     } catch (error) {
                         // If decoding fails, keep original value
                         vscode.window.showWarningMessage(`Failed to decode value for key '${key}': ${error}`);
