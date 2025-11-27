@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/duyluann/kubeseal-vscode/compare/v2.1.1...v2.1.2) (2025-11-25)
+
+
+### Bug Fixes
+
+* support Unicode characters in base64 decode ([#86](https://github.com/duyluann/kubeseal-vscode/issues/86)) ([707f0c8](https://github.com/duyluann/kubeseal-vscode/commit/707f0c8bb15e76e2fd8eccfe43abe4fa9297d3bd))
+
 ## [2.1.1](https://github.com/duyluann/kubeseal-vscode/compare/v2.1.0...v2.1.1) (2025-11-08)
 
 
