@@ -92,7 +92,7 @@ export async function execKubeseal(
 
     // Execute kubeseal with stdin/stdout
     const child = spawn('kubeseal', ['--cert', certPath, '--format', 'yaml'], {
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     return new Promise((resolve, reject) => {
@@ -180,7 +180,7 @@ export async function validateBinaryInstalled(binaryPath: string): Promise<boole
     try {
         const result = await new Promise<ExecResult>((resolve, reject) => {
             const child = spawn(binaryPath, ['--version'], {
-                stdio: ['ignore', 'pipe', 'pipe']
+                stdio: ['ignore', 'pipe', 'pipe'],
             });
 
             let stdout = '';

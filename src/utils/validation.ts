@@ -22,10 +22,14 @@ export function isValidKubernetesName(name: string): boolean {
  */
 export function validateSecretMetadata(metadata: SecretMetadata): void {
     if (!isValidKubernetesName(metadata.name)) {
-        throw new Error(`Invalid Kubernetes secret name: "${metadata.name}". Must be lowercase alphanumeric with hyphens, starting and ending with alphanumeric.`);
+        throw new Error(
+            `Invalid Kubernetes secret name: "${metadata.name}". Must be lowercase alphanumeric with hyphens, starting and ending with alphanumeric.`
+        );
     }
     if (!isValidKubernetesName(metadata.namespace)) {
-        throw new Error(`Invalid Kubernetes namespace: "${metadata.namespace}". Must be lowercase alphanumeric with hyphens, starting and ending with alphanumeric.`);
+        throw new Error(
+            `Invalid Kubernetes namespace: "${metadata.namespace}". Must be lowercase alphanumeric with hyphens, starting and ending with alphanumeric.`
+        );
     }
 }
 

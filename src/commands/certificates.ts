@@ -27,14 +27,17 @@ export async function getCurrentCertificatePath(
     const activeCertFile = config.get<string>('activeCertFile', '');
 
     if (!certsFolder) {
-        progress?.report?.({ message: "No certs folder configured." });
+        progress?.report?.({ message: 'No certs folder configured.' });
         const result = await vscode.window.showErrorMessage(
             'No certificate folder configured. Please configure it first.',
             'Open Settings',
             'Set Certificate Folder'
         );
         if (result === 'Open Settings') {
-            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:ops4life.kubeseal-vscode certsFolder');
+            vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                '@ext:ops4life.kubeseal-vscode certsFolder'
+            );
         } else if (result === 'Set Certificate Folder') {
             vscode.commands.executeCommand('kubeseal.setCertFolder');
         }
@@ -42,8 +45,10 @@ export async function getCurrentCertificatePath(
     }
 
     if (!activeCertFile) {
-        progress?.report?.({ message: "No certificate selected." });
-        vscode.window.showErrorMessage('No certificate selected. Please select one from the status bar.');
+        progress?.report?.({ message: 'No certificate selected.' });
+        vscode.window.showErrorMessage(
+            'No certificate selected. Please select one from the status bar.'
+        );
         return undefined;
     }
 
@@ -67,7 +72,10 @@ export async function selectCertificate(): Promise<void> {
             'Set Certificate Folder'
         );
         if (result === 'Open Settings') {
-            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:ops4life.kubeseal-vscode certsFolder');
+            vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                '@ext:ops4life.kubeseal-vscode certsFolder'
+            );
         } else if (result === 'Set Certificate Folder') {
             vscode.commands.executeCommand('kubeseal.setCertFolder');
         }
@@ -76,8 +84,7 @@ export async function selectCertificate(): Promise<void> {
 
     let files: string[] = [];
     try {
-        files = fs.readdirSync(certsFolder)
-            .filter(f => f.match(/\.(pem|crt|cert)$/i));
+        files = fs.readdirSync(certsFolder).filter((f) => f.match(/\.(pem|crt|cert)$/i));
     } catch (e) {
         vscode.window.showErrorMessage('Failed to read certs folder.');
         return;
@@ -89,7 +96,7 @@ export async function selectCertificate(): Promise<void> {
     }
 
     const selected = await vscode.window.showQuickPick(files, {
-        placeHolder: 'Select certificate file to use'
+        placeHolder: 'Select certificate file to use',
     });
 
     if (selected) {
@@ -111,12 +118,12 @@ export async function setCertificateFolder(
             return;
         }
 
-        progress?.report?.({ message: "Prompting for certificate folder..." });
+        progress?.report?.({ message: 'Prompting for certificate folder...' });
         const options: vscode.OpenDialogOptions = {
             canSelectMany: false,
             canSelectFolders: true,
             canSelectFiles: false,
-            openLabel: 'Select Certificate Folder'
+            openLabel: 'Select Certificate Folder',
         };
 
         const folderUri = await vscode.window.showOpenDialog(options);
@@ -126,7 +133,7 @@ export async function setCertificateFolder(
         }
 
         if (folderUri && folderUri.length > 0) {
-            progress?.report?.({ message: "Saving certificate folder to config..." });
+            progress?.report?.({ message: 'Saving certificate folder to config...' });
             const certsFolder = folderUri[0].fsPath;
             const config = vscode.workspace.getConfiguration('kubeseal');
             await config.update('certsFolder', certsFolder, vscode.ConfigurationTarget.Global);
@@ -135,7 +142,10 @@ export async function setCertificateFolder(
             await config.update('activeCertFile', '', vscode.ConfigurationTarget.Global);
         }
     } catch (error) {
-        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+        if (
+            token?.isCancellationRequested ||
+            (error instanceof Error && error.message.includes('cancelled'))
+        ) {
             vscode.window.showInformationMessage('Certificate folder selection was cancelled');
             return;
         }

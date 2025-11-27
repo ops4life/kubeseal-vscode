@@ -23,7 +23,7 @@ export async function encryptSecret(
     logInfo(`Starting encryption for file: ${filePath}`);
 
     try {
-        progress?.report({ message: "Loading configuration..." });
+        progress?.report({ message: 'Loading configuration...' });
 
         // Check for cancellation at key points
         if (token?.isCancellationRequested) {
@@ -42,7 +42,7 @@ export async function encryptSecret(
         }
 
         // Check if certificate file exists
-        progress?.report({ message: "Validating certificate file..." });
+        progress?.report({ message: 'Validating certificate file...' });
         try {
             await fs.access(certPath);
         } catch {
@@ -51,7 +51,7 @@ export async function encryptSecret(
         }
 
         // Read the input file
-        progress?.report({ message: "Reading secret file..." });
+        progress?.report({ message: 'Reading secret file...' });
         if (token?.isCancellationRequested) {
             return;
         }
@@ -60,7 +60,9 @@ export async function encryptSecret(
 
         // Check if the file contains a Secret resource
         if (!isKubernetesSecret(inputContent)) {
-            vscode.window.showWarningMessage('This file does not appear to contain a Kubernetes Secret');
+            vscode.window.showWarningMessage(
+                'This file does not appear to contain a Kubernetes Secret'
+            );
             return;
         }
 
@@ -71,7 +73,7 @@ export async function encryptSecret(
         const outputPath = path.join(dir, `${basename}-sealed${ext}`);
 
         // Run kubeseal command with cancellation support
-        progress?.report({ message: "Running kubeseal to encrypt secret..." });
+        progress?.report({ message: 'Running kubeseal to encrypt secret...' });
 
         if (!token) {
             throw new Error('Cancellation token is required');
@@ -90,17 +92,20 @@ export async function encryptSecret(
         // Ask if user wants to open the encrypted file
         const openResult = await vscode.window.showInformationMessage(
             'Would you like to open the encrypted file?',
-            'Yes', 'No'
+            'Yes',
+            'No'
         );
 
         if (openResult === 'Yes' && !token?.isCancellationRequested) {
-            progress?.report({ message: "Opening encrypted file..." });
+            progress?.report({ message: 'Opening encrypted file...' });
             const document = await vscode.workspace.openTextDocument(outputPath);
             await vscode.window.showTextDocument(document);
         }
-
     } catch (error) {
-        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+        if (
+            token?.isCancellationRequested ||
+            (error instanceof Error && error.message.includes('cancelled'))
+        ) {
             logInfo('Encryption operation was cancelled by user');
             vscode.window.showInformationMessage('Encryption operation was cancelled');
             return;
@@ -116,9 +121,13 @@ export async function encryptSecret(
         );
 
         if (result === 'Check kubeseal Installation') {
-            vscode.env.openExternal(vscode.Uri.parse('https://github.com/bitnami-labs/sealed-secrets#installation'));
+            vscode.env.openExternal(
+                vscode.Uri.parse('https://github.com/bitnami-labs/sealed-secrets#installation')
+            );
         } else if (result === 'View Documentation') {
-            vscode.env.openExternal(vscode.Uri.parse('https://github.com/bitnami-labs/sealed-secrets'));
+            vscode.env.openExternal(
+                vscode.Uri.parse('https://github.com/bitnami-labs/sealed-secrets')
+            );
         }
     }
 }
@@ -132,7 +141,7 @@ export async function decryptSecret(
     token?: vscode.CancellationToken
 ): Promise<void> {
     try {
-        progress?.report({ message: "Reading secret file..." });
+        progress?.report({ message: 'Reading secret file...' });
 
         if (token?.isCancellationRequested) {
             return;
@@ -160,7 +169,10 @@ export async function decryptSecret(
         try {
             validateSecretMetadata(metadata);
         } catch (validationError) {
-            const errorMessage = validationError instanceof Error ? validationError.message : String(validationError);
+            const errorMessage =
+                validationError instanceof Error
+                    ? validationError.message
+                    : String(validationError);
             vscode.window.showErrorMessage(`Invalid secret metadata: ${errorMessage}`);
             return;
         }
@@ -172,7 +184,7 @@ export async function decryptSecret(
         const outputPath = path.join(dir, `${basename}-unsealed${ext}`);
 
         // Get secret from cluster with cancellation support
-        progress?.report({ message: "Getting secret from cluster..." });
+        progress?.report({ message: 'Getting secret from cluster...' });
 
         if (!token) {
             throw new Error('Cancellation token is required');
@@ -184,21 +196,26 @@ export async function decryptSecret(
             return;
         }
 
-        vscode.window.showInformationMessage(`Secret retrieved successfully from cluster: ${outputPath}`);
+        vscode.window.showInformationMessage(
+            `Secret retrieved successfully from cluster: ${outputPath}`
+        );
 
         const openResult = await vscode.window.showInformationMessage(
             'Would you like to open the decrypted file?',
-            'Yes', 'No'
+            'Yes',
+            'No'
         );
 
         if (openResult === 'Yes' && !token?.isCancellationRequested) {
-            progress?.report({ message: "Opening decrypted file..." });
+            progress?.report({ message: 'Opening decrypted file...' });
             const document = await vscode.workspace.openTextDocument(outputPath);
             await vscode.window.showTextDocument(document);
         }
-
     } catch (error) {
-        if (token?.isCancellationRequested || error instanceof Error && error.message.includes('cancelled')) {
+        if (
+            token?.isCancellationRequested ||
+            (error instanceof Error && error.message.includes('cancelled'))
+        ) {
             vscode.window.showInformationMessage('Decryption operation was cancelled');
             return;
         }
@@ -212,9 +229,13 @@ export async function decryptSecret(
         );
 
         if (result === 'Check kubectl Access') {
-            vscode.env.openExternal(vscode.Uri.parse('https://kubernetes.io/docs/tasks/tools/#kubectl'));
+            vscode.env.openExternal(
+                vscode.Uri.parse('https://kubernetes.io/docs/tasks/tools/#kubectl')
+            );
         } else if (result === 'View Documentation') {
-            vscode.env.openExternal(vscode.Uri.parse('https://github.com/bitnami-labs/sealed-secrets'));
+            vscode.env.openExternal(
+                vscode.Uri.parse('https://github.com/bitnami-labs/sealed-secrets')
+            );
         }
     }
 }

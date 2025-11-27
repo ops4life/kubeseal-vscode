@@ -27,7 +27,7 @@ export function toYaml(obj: unknown): string {
     return yaml.dump(obj, {
         indent: 2,
         lineWidth: -1,
-        noRefs: true
+        noRefs: true,
     });
 }
 
@@ -73,7 +73,7 @@ export function extractSecretMetadata(content: string): SecretMetadata {
 
     return {
         name: doc.metadata.name,
-        namespace: doc.metadata.namespace || 'default'
+        namespace: doc.metadata.namespace || 'default',
     };
 }
 

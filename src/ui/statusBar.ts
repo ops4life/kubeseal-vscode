@@ -34,7 +34,8 @@ export function updateStatusBar(): void {
 
     if (!certsFolder) {
         statusBarItem.text = '$(key) (no folder set)';
-        statusBarItem.tooltip = 'Current active Kubeseal cert - Click to configure certificate folder';
+        statusBarItem.tooltip =
+            'Current active Kubeseal cert - Click to configure certificate folder';
     } else if (activeCertFile) {
         statusBarItem.text = `$(key) ${activeCertFile}`;
         statusBarItem.tooltip = `Current active Kubeseal cert: ${path.join(certsFolder, activeCertFile)}`;
