@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.0.0...v3.0.1) (2026-01-17)
+
+
+### Bug Fixes
+
+* add pull-requests and issues write permissions for semantic-release ([#5](https://github.com/ops4life/kubeseal-vscode/issues/5)) ([a966f02](https://github.com/ops4life/kubeseal-vscode/commit/a966f02ba33cce9be3e8ff873eda25f74890859f))
+
 # [3.0.0](https://github.com/ops4life/kubeseal-vscode/compare/v2.1.3...v3.0.0) (2026-01-17)
 
 
