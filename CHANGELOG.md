@@ -1,3 +1,11 @@
+# [3.0.0](https://github.com/ops4life/kubeseal-vscode/compare/v2.1.3...v3.0.0) (2026-01-17)
+
+
+### Features
+
+* add workflow to backfill VSIX files to existing releases ([2da2aa0](https://github.com/ops4life/kubeseal-vscode/commit/2da2aa0fc56b80abf208c551306a3465739fad7c))
+* Modify license update workflow to use repo owner ([ae5cc20](https://github.com/ops4life/kubeseal-vscode/commit/ae5cc20ffb50e94596cbb54598c9765759e4ad22))
+
 ## [2.1.3](https://github.com/ops4life/kubeseal-vscode/compare/v2.1.2...v2.1.3) (2025-11-27)
 
 
