@@ -48,7 +48,7 @@
 
 **Or install directly:**
 
-- [Download from Releases page](https://github.com/duyluann/kubeseal-vscode/releases)
+- [Download from Releases page](https://github.com/ops4life/kubeseal-vscode/releases)
 
 **Recommended Extensions:**
 
@@ -338,8 +338,8 @@ The extension provides the following settings:
 
 If you encounter any issues or have questions, feel free to:
 
-- Open an issue on [GitHub](https://github.com/duyluann/kubeseal-vscode/issues)
-- Start a discussion in the [Discussions tab](https://github.com/duyluann/kubeseal-vscode/discussions)
+- Open an issue on [GitHub](https://github.com/ops4life/kubeseal-vscode/issues)
+- Start a discussion in the [Discussions tab](https://github.com/ops4life/kubeseal-vscode/discussions)
 - Email us at <support@example.com>
 
 ## ⚠️ Known Issues
@@ -360,5 +360,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔗 Links
 
 - [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
-- [GitHub Repository](https://github.com/duyluann/kubeseal-vscode)
+- [GitHub Repository](https://github.com/ops4life/kubeseal-vscode)
 - [Sealed Secrets Documentation](https://github.com/bitnami-labs/sealed-secrets)

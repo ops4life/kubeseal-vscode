@@ -5,7 +5,7 @@
     "version": "2.1.3",
     "repository": {
         "type": "git",
-        "url": "https://github.com/duyluann/kubeseal-vscode.git"
+        "url": "https://github.com/ops4life/kubeseal-vscode.git"
     },
     "publisher": "ops4life",
     "icon": "icon.png",
