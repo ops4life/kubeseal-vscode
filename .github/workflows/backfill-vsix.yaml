@@ -1,0 +1,120 @@
+name: Backfill VSIX to Releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      specific_tag:
+        description: 'Specific tag to backfill (leave empty for all releases)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (do not upload)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  backfill:
+    name: Backfill VSIX Files
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install vsce globally
+        run: npm install -g @vscode/vsce
+
+      - name: Get releases to process
+        id: get-releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPECIFIC_TAG: ${{ inputs.specific_tag }}
+        run: |
+          if [ -n "$SPECIFIC_TAG" ]; then
+            echo "tags=$SPECIFIC_TAG" >> $GITHUB_OUTPUT
+          else
+            TAGS=$(gh release list --json tagName --limit 100 -q '.[].tagName' | tr '\n' ' ')
+            echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and upload VSIX for each release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          TAGS="${{ steps.get-releases.outputs.tags }}"
+
+          for TAG in $TAGS; do
+            echo "=========================================="
+            echo "Processing $TAG"
+            echo "=========================================="
+
+            # Check if release already has assets
+            ASSETS=$(gh release view "$TAG" --json assets -q '.assets | length')
+            if [ "$ASSETS" -gt 0 ]; then
+              echo "Release $TAG already has $ASSETS asset(s), skipping..."
+              continue
+            fi
+
+            # Checkout the tag
+            git checkout "$TAG" --force
+
+            # Clean any previous build artifacts
+            rm -rf node_modules out *.vsix
+
+            # Install dependencies
+            if ! npm install; then
+              echo "Failed to install dependencies for $TAG, skipping..."
+              continue
+            fi
+
+            # Compile
+            if ! npm run compile; then
+              echo "Failed to compile $TAG, skipping..."
+              continue
+            fi
+
+            # Package VSIX
+            if ! vsce package --no-yarn; then
+              echo "Failed to package $TAG, skipping..."
+              continue
+            fi
+
+            # Find the VSIX file
+            VSIX_FILE=$(ls -1 *.vsix 2>/dev/null | head -n1)
+            if [ -z "$VSIX_FILE" ]; then
+              echo "No VSIX file found for $TAG, skipping..."
+              continue
+            fi
+
+            echo "Created: $VSIX_FILE"
+
+            # Upload to release
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "[DRY RUN] Would upload $VSIX_FILE to release $TAG"
+            else
+              echo "Uploading $VSIX_FILE to release $TAG..."
+              gh release upload "$TAG" "$VSIX_FILE" --clobber
+              echo "Successfully uploaded VSIX to $TAG"
+            fi
+
+            # Cleanup
+            rm -f *.vsix
+          done
+
+          # Return to main branch
+          git checkout main --force
+
+          echo "=========================================="
+          echo "Backfill complete!"
+          echo "=========================================="
