@@ -1,6 +1,6 @@
 name: Auto-merge PR
 
-on: pull_request
+on: pull_request_target
 
 permissions:
   pull-requests: write
@@ -10,14 +10,9 @@ jobs:
   automerge:
     runs-on: ubuntu-24.04
     if: |
-      (
-        github.actor == 'github-actions[bot]' && (
-          startsWith(github.head_ref, 'update-license-') ||
-          github.head_ref == 'update-pre-commit-hooks'
-        )
-      ) || (
-        github.actor == 'dependabot[bot]'
-      )
+      startsWith(github.head_ref, 'update-license-') ||
+      github.head_ref == 'update-pre-commit-hooks' ||
+      github.actor == 'dependabot[bot]'
     steps:
       - uses: peter-evans/enable-pull-request-automerge@v3
         with:
