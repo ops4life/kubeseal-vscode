@@ -8,6 +8,7 @@
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://ops4life.github.io/kubeseal-vscode)
 
 ## 📚 Table of Contents
 

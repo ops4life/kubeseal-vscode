@@ -5,3 +5,12 @@ repos:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: check-yaml
+        exclude: mkdocs\.yml
+-   repo: local
+    hooks:
+    -   id: mkdocs-build
+        name: mkdocs build --strict
+        entry: bash -c 'python3 -m venv .mkdocs-venv && source .mkdocs-venv/bin/activate && pip install -q -r requirements.txt && mkdocs build --strict && rm -rf .mkdocs-venv'
+        language: system
+        files: '(docs/|mkdocs\.yml|requirements\.txt)'
+        pass_filenames: false

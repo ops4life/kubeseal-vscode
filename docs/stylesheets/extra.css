@@ -1,0 +1,26 @@
+/* Custom styles for Kubeseal VSCode documentation */
+
+/* Header styling */
+.md-header {
+  font-weight: 600;
+}
+
+/* Improve code block readability */
+.highlight code {
+  font-size: 0.85em;
+}
+
+/* Table styling improvements */
+.md-typeset table:not([class]) {
+  font-size: 0.85em;
+}
+
+/* Status badge alignment on home page */
+.md-typeset img[alt="Version"],
+.md-typeset img[alt="Downloads"],
+.md-typeset img[alt="Rating"],
+.md-typeset img[alt="License"],
+.md-typeset img[alt="Docs"] {
+  vertical-align: middle;
+  margin: 0 2px;
+}
