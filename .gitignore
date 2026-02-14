@@ -34,5 +34,9 @@ README.personal.md
 gitleaks-report.json
 gitleaks-report.txt
 
+# MkDocs
+site/
+.mkdocs-venv/
+
 # extensions
 *.vsix
