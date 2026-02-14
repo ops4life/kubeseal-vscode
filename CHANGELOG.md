@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.0.1...v3.1.0) (2026-02-14)
+
+
+### Features
+
+* add MkDocs documentation site with GitHub Pages deployment ([#11](https://github.com/ops4life/kubeseal-vscode/issues/11)) ([46cef0c](https://github.com/ops4life/kubeseal-vscode/commit/46cef0cb06ffbd2c24eda0966e9b73bc13106ec8))
+
 ## [3.0.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.0.0...v3.0.1) (2026-01-17)
 
 
