@@ -1,8 +1,8 @@
 site_name: Kubeseal VSCode Extension
 site_description: VS Code extension for encrypting and decrypting Kubernetes secrets using kubeseal
 site_url: https://username.github.io/github-repo-template
-repo_url: https://github.com/username/github-repo-template
-repo_name: username/github-repo-template
+repo_url: https://github.com/ops4life/kubeseal-vscode
+repo_name: ops4life/kubeseal-vscode
 edit_uri: edit/main/docs/
 
 theme:
@@ -67,7 +67,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/username/github-repo-template
+      link: https://github.com/ops4life/kubeseal-vscode
 
 extra_css:
   - stylesheets/extra.css
