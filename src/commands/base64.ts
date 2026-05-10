@@ -112,54 +112,6 @@ export async function encodeBase64Values(
         const secret = parseSecret(inputContent);
         let encodedCount = 0;
 
-        // --- Pre-flight already-encoded guard ---
-        // If ALL non-empty .data values are already base64, encoding would be a
-        // no-op (each value is skipped by the roundtrip check below). Warn the
-        // user so they don't accidentally encode an already-encoded file.
-        if (secret.data) {
-            const dataEntries = Object.entries(secret.data).filter(([, v]) => !!v);
-            if (dataEntries.length > 0) {
-                if (token?.isCancellationRequested) return;
-                progress?.report({ message: 'Checking if values are already encoded...' });
-
-                const checks = await Promise.all(
-                    dataEntries.map(async ([key, value]) => ({
-                        key,
-                        isBase64: await isAlreadyBase64Encoded(value),
-                    }))
-                );
-
-                const alreadyEncodedKeys = checks.filter((c) => c.isBase64).map((c) => c.key);
-
-                if (alreadyEncodedKeys.length === dataEntries.length) {
-                    // Every non-empty value is already base64 — encoding will do nothing.
-                    const total = dataEntries.length;
-                    const keyList =
-                        alreadyEncodedKeys.length <= 5
-                            ? alreadyEncodedKeys.map((k) => `'${k}'`).join(', ')
-                            : alreadyEncodedKeys
-                                  .slice(0, 4)
-                                  .map((k) => `'${k}'`)
-                                  .join(', ') + ` and ${alreadyEncodedKeys.length - 4} more`;
-
-                    const answer = await vscode.window.showWarningMessage(
-                        `All ${total} value(s) in .data are already base64 encoded (${keyList}). ` +
-                            `This file appears to be already encoded — encoding will have no effect. Encode anyway?`,
-                        { modal: true },
-                        'Encode Anyway'
-                    );
-
-                    if (answer !== 'Encode Anyway') {
-                        logInfo(`Encode cancelled by user — all values already base64 in ${filePath}`);
-                        vscode.window.showInformationMessage(
-                            'Encode cancelled. Run "Decode Base64 Values" first if you want to view plain text.'
-                        );
-                        return;
-                    }
-                }
-            }
-        }
-
         // --- Handle .data field ---
         // Encode any value that fails the roundtrip check (i.e., not yet base64).
         if (secret.data) {
@@ -279,54 +231,6 @@ export async function decodeBase64Values(
         const secret = parseSecret(inputContent);
         let decodedCount = 0;
         let skippedBinaryCount = 0;
-
-        // --- Pre-flight plaintext guard ---
-        // Check each .data value with a roundtrip to see if it is valid base64.
-        // If plaintext values are detected the file was likely not encoded yet;
-        // show a confirmation dialog so the user can abort before corrupting data.
-        if (secret.data) {
-            const dataEntries = Object.entries(secret.data).filter(([, v]) => !!v);
-            if (dataEntries.length > 0) {
-                if (token?.isCancellationRequested) return;
-                progress?.report({ message: 'Checking if values are base64 encoded...' });
-
-                const checks = await Promise.all(
-                    dataEntries.map(async ([key, value]) => ({
-                        key,
-                        isBase64: await isAlreadyBase64Encoded(value),
-                    }))
-                );
-
-                const plaintextKeys = checks.filter((c) => !c.isBase64).map((c) => c.key);
-
-                if (plaintextKeys.length > 0) {
-                    const total = dataEntries.length;
-                    const count = plaintextKeys.length;
-                    const keyList =
-                        plaintextKeys.length <= 5
-                            ? plaintextKeys.map((k) => `'${k}'`).join(', ')
-                            : plaintextKeys
-                                  .slice(0, 4)
-                                  .map((k) => `'${k}'`)
-                                  .join(', ') + ` and ${plaintextKeys.length - 4} more`;
-
-                    const answer = await vscode.window.showWarningMessage(
-                        `${count} of ${total} value(s) in .data appear to be plain text, not base64 (${keyList}). ` +
-                            `This file may not have been encoded yet. Decode anyway?`,
-                        { modal: true },
-                        'Decode Anyway'
-                    );
-
-                    if (answer !== 'Decode Anyway') {
-                        logInfo(`Decode cancelled by user — plaintext values detected in ${filePath}`);
-                        vscode.window.showInformationMessage(
-                            'Decode cancelled. Run "Encode Base64 Values" first if the file contains plain text.'
-                        );
-                        return;
-                    }
-                }
-            }
-        }
 
         // Decode ALL values in .data — no heuristic check needed.
         // The K8s Secret spec mandates that every .data value is base64.
