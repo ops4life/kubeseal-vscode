@@ -116,6 +116,7 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "test": "npm run compile && node ./out/test/runTest.js",
+        "test:base64": "node tests/run-tests.mjs",
         "lint": "eslint src --ext ts",
         "lint:fix": "eslint src --ext ts --fix",
         "format": "prettier --write \"src/**/*.ts\"",

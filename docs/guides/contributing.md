@@ -46,7 +46,8 @@ Contributions are welcome! This guide will help you get started with development
 |---------|-------------|
 | `npm run compile` | Compile TypeScript to JavaScript |
 | `npm run watch` | Watch mode for development |
-| `npm test` | Run tests |
+| `npm run test:base64` | Run base64 encode/decode test suite (fast, no VS Code runtime) |
+| `npm test` | Run full VS Code integration tests |
 | `npm run lint` | Run ESLint |
 | `npm run lint:fix` | Auto-fix ESLint issues |
 | `npm run format` | Format code with Prettier |
@@ -97,13 +98,57 @@ See [Commit Conventions](commit-conventions.md) for commit message formatting.
 
 ## Testing
 
-Run the test suite:
+The project has two test runners:
+
+### Base64 Test Suite (standalone)
+
+A fast, standalone test suite that exercises the encode/decode logic against all YAML fixtures in `tests/`. No VS Code runtime required.
+
+```bash
+npm run test:base64
+```
+
+Runs 174 assertions across all 10 YAML fixtures covering:
+
+- Special characters: emoji, CJK, Arabic, `@#$%^&*`, newlines, tabs, URLs
+- Already-encoded detection: roundtrip check prevents double-encoding
+- Binary content: PNG / ZIP / JPEG / certs kept as base64
+- Edge cases: multiline values, padding variants, YAML keywords (`true`, `null`, `123`)
+- `stringData` → `data` promotion
+
+### Full VS Code Test Suite
 
 ```bash
 npm test
 ```
 
-When adding new features, include appropriate tests. The test runner is configured to compile TypeScript first and then execute the test suite.
+Compiles TypeScript first, then runs the full VS Code extension test runner.
+
+## Pre-commit Hooks
+
+The repository uses [pre-commit](https://pre-commit.com/) to enforce quality gates before every commit.
+Install the hooks once after cloning:
+
+```bash
+pre-commit install
+```
+
+Hooks that run automatically:
+
+| Hook | Triggers on | Action |
+|------|-------------|--------|
+| `trailing-whitespace` | Any file | Removes trailing whitespace |
+| `end-of-file-fixer` | Any file | Ensures files end with newline |
+| `check-yaml` | `*.yaml` / `*.yml` | Validates YAML syntax |
+| `mkdocs-build` | `docs/`, `mkdocs.yml` | Full mkdocs strict build |
+| `typecheck` | `*.ts`, `*.json` | `tsc --noEmit` type check |
+| `base64-tests` | `src/commands/base64.ts`, `src/utils/shell.ts`, `tests/` | Runs the base64 test suite |
+
+To run hooks manually against specific files:
+
+```bash
+pre-commit run --files src/commands/base64.ts src/utils/shell.ts
+```
 
 ## Pull Request Guidelines
 

@@ -16,8 +16,12 @@ kubeseal-vscode/
 │   ├── types/                  # TypeScript type definitions
 │   ├── ui/                     # UI components
 │   └── utils/                  # Utility modules
+├── tests/                      # YAML fixtures + standalone test runner
+│   ├── run-tests.mjs           # Standalone base64 test suite
+│   └── *.yaml                  # K8s Secret YAML test fixtures
 ├── out/                        # Compiled JavaScript (generated)
 ├── .eslintrc.json              # ESLint configuration
+├── .pre-commit-config.yaml     # Pre-commit hook definitions
 ├── .prettierrc                 # Prettier configuration
 ├── CHANGELOG.md                # Auto-generated changelog
 ├── CLAUDE.md                   # Claude Code instructions
@@ -72,11 +76,11 @@ Certificate management system:
 
 #### `commands/base64.ts`
 
-Base64 encoding and decoding for Kubernetes Secret `data` fields:
+Base64 encoding and decoding for Kubernetes Secret `data` and `stringData` fields:
 
-- Detects already-encoded values to prevent double encoding
-- Handles binary content detection during decoding
-- Uses js-yaml for robust YAML parsing
+- **Encode**: Uses a roundtrip check (`decode → re-encode → compare`, with whitespace normalisation) to detect already-encoded values and avoid double-encoding. Promotes `stringData` entries to `data`. Relies on `encodeWithBase64()` from `utils/shell.ts`.
+- **Decode**: Decodes ALL `.data` values unconditionally — the K8s spec guarantees they are base64. Skips binary content (null bytes, control chars) to preserve certs/keys as-is.
+- Both operations delegate to `encodeWithBase64` / `decodeWithBase64` in `utils/shell.ts` which pipe through the system `base64` binary.
 
 #### `utils/shell.ts`
 
@@ -85,14 +89,33 @@ Security-focused shell execution:
 - Uses `spawn()` instead of `exec()` to prevent command injection
 - Supports cancellation via VS Code's cancellation token
 - 30-second default timeout
+- `encodeWithBase64(value)`: pipes UTF-8 value through system `base64` → returns single-line encoded string
+- `decodeWithBase64(encoded)`: pipes through `base64 -D` (macOS) / `base64 -d` (Linux) → collects raw Buffer chunks to correctly handle all Unicode and multi-byte sequences
 
 #### `utils/validation.ts`
 
 Input validation:
 
 - RFC 1123 DNS label validation for Kubernetes names
-- Base64 detection heuristics via `isProbablyBase64Value()`
+- `isProbablyBase64Value()` retained for legacy reference; base64 detection in commands now uses terminal roundtrip via `utils/shell.ts`
 
 #### `utils/yaml.ts`
 
 YAML processing using the `js-yaml` library with type-safe parsing through TypeScript interfaces.
+
+## Test Fixtures
+
+All YAML files in `tests/` are K8s Secret fixtures used by the standalone test runner (`tests/run-tests.mjs`).
+
+| File | Purpose |
+|------|---------|
+| `basic-encode-test.yaml` | Mix of plaintext and already-encoded values |
+| `decode-test.yaml` | All valid base64 values to be decoded |
+| `unicode-test.yaml` | Unicode, emoji, special symbols |
+| `edge-cases-test.yaml` | Multiline, padding variants, YAML keywords |
+| `mixed-content-test.yaml` | Mixed plaintext + base64 in same secret |
+| `stringdata-test.yaml` | `stringData` field promotion to `data` |
+| `binary-content-test.yaml` | PNG / cert / ZIP — should stay as base64 |
+| `comments-test.yaml` | Values with inline YAML comments |
+| `not-secret-test.yaml` | ConfigMap — should be rejected |
+| `no-data-field-test.yaml` | Secret with no `data` field — no-op |
