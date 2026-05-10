@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.1.0...v3.1.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* **base64:** replace heuristics with system base64 terminal binary ([#30](https://github.com/ops4life/kubeseal-vscode/issues/30)) ([4b61208](https://github.com/ops4life/kubeseal-vscode/commit/4b61208c0ec94f27ab02b442efb9e5991386124c))
+
 # [3.1.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.0.1...v3.1.0) (2026-02-14)
 
 
