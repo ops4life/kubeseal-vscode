@@ -61,7 +61,7 @@ For the best Kubernetes development experience, we recommend installing:
 
 - **🔐 Encrypt Secrets**: Right-click on YAML files containing Kubernetes secrets to encrypt them using kubeseal
 - **🔓 Decrypt Secrets**: Retrieve the original content of sealed secrets from your Kubernetes cluster
-- **📝 Base64 Encoding/Decoding**: Encode and decode base64 values in Kubernetes secret data fields
+- **📝 Base64 Encoding/Decoding**: Encode and decode base64 values using the system `base64` binary — handles Unicode, emoji, special characters, multiline values, TLS certs, and `stringData` promotion
 - **📂 Certificate Folder Management**: Configure a folder containing multiple kubeseal certificates and easily switch between them
 - **🔄 Active Certificate Selection**: Click on the status bar to select which certificate to use for encryption
 - **🎯 Context Menu Integration**: Access kubeseal operations directly from the file explorer and editor context menus
@@ -133,22 +133,27 @@ This extension integrates with the [Bitnami Sealed Secrets](https://github.com/b
 ### Base64 Encoding/Decoding Workflow
 
 ```
-Before Encoding:               After Encoding:
-┌──────────────────┐          ┌──────────────────┐
-│ kind: Secret     │          │ kind: Secret     │
-│ data:            │  Encode  │ data:            │
-│   username: admin│  ──────▶ │   username: YWRt │
-│   password: 123  │          │   password: MTIz │
-└──────────────────┘          └──────────────────┘
+Before Encoding:                After Encoding:
+┌────────────────────────┐      ┌────────────────────────────────┐
+│ kind: Secret           │      │ kind: Secret                   │
+│ data:                  │Encode│ data:                          │
+│   username: admin      │─────▶│   username: YWRtaW4=           │
+│   password: P@ss!🔑    │      │   password: UEBzcyHwn5KR       │
+│   token: YWJj... (b64) │      │   token: YWJj... (skipped ✓)  │
+└────────────────────────┘      └────────────────────────────────┘
 
-Decoding reverses the process ◀──────
+stringData is also promoted to data during encoding.
+Decoding reverses the process ◀──────────────────────────────────
 ```
 
 **Key Points:**
 - Works on local YAML files (no cluster needed)
-- Automatically detects already-encoded values
-- Preserves binary data when decoding
-- Useful before encrypting secrets
+- Uses the system `base64` binary — same tool as `kubectl` and `openssl`
+- Handles all Unicode: emoji 🌍, CJK, Arabic, special symbols, newlines, tabs
+- Reliably detects already-encoded values via roundtrip check — no double-encoding
+- Encodes `stringData` values and promotes them to `data` automatically
+- Preserves binary values (TLS certs, SSH keys, images) as base64 when decoding
+- Useful for preparing secrets before encryption
 
 ## 🎥 Video Demonstration
 
@@ -288,7 +293,9 @@ The extension provides utilities for working with base64 encoded values in Kuber
 
 1. Right-click on a Kubernetes secret YAML file
 2. Select **"Encode Base64 Values"**
-3. All plain text values in the `data` field will be base64 encoded
+3. All plain text values in the `data` field will be encoded; already-encoded values are skipped automatically
+
+**Also supports `stringData`:** values are encoded and promoted to the `data` field.
 
 **Example:**
 ```yaml
@@ -298,8 +305,11 @@ kind: Secret
 metadata:
   name: my-secret
 data:
-  username: admin        # plain text
-  password: password123  # plain text
+  username: admin             # plain text → will be encoded
+  password: P@ssw0rd!🔑      # unicode special chars → handled correctly
+  token: YWJjZGVmZ2hpams=   # already base64 → skipped
+stringData:
+  config: "host=localhost"   # stringData → encoded and moved to data
 
 # After encoding:
 apiVersion: v1
@@ -307,17 +317,19 @@ kind: Secret
 metadata:
   name: my-secret
 data:
-  username: YWRtaW4=           # base64 encoded
-  password: cGFzc3dvcmQxMjM=   # base64 encoded
+  username: YWRtaW4=
+  password: UEBzc3cwcmQh8J+Skw==
+  token: YWJjZGVmZ2hpams=        # unchanged
+  config: aG9zdD1sb2NhbGhvc3Q=  # promoted from stringData
 ```
 
 #### Decode Base64 Values
 
 1. Right-click on a Kubernetes secret YAML file
 2. Select **"Decode Base64 Values"**
-3. All base64 encoded values in the `data` field will be decoded to plain text
+3. All base64 encoded values in the `data` field are decoded to plain text
 
-**Note:** The extension automatically detects which values are already encoded/decoded and skips them to prevent double encoding/decoding.
+**Note:** Binary values (TLS certificates, SSH keys, images) are automatically detected and kept as base64 to avoid corruption.
 
 ## ⚙️ Configuration
 
@@ -352,7 +364,20 @@ For a complete list of changes, see the [Changelog](CHANGELOG.md).
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please read the [Contributing Guide](docs/guides/contributing.md) before submitting a Pull Request.
+
+**Quick start for contributors:**
+
+```bash
+git clone https://github.com/ops4life/kubeseal-vscode.git
+cd kubeseal-vscode
+npm install
+pre-commit install        # install pre-commit hooks
+npm run test:base64       # run the base64 test suite
+```
+
+Pre-commit hooks enforce TypeScript type checking and the base64 test suite on every commit.
+See [Contributing Guide](docs/guides/contributing.md) for full details.
 
 ## 📄 License
 

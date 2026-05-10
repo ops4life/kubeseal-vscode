@@ -21,7 +21,10 @@ npm run compile
 # Watch mode for development
 npm run watch
 
-# Run tests
+# Run the base64 encode/decode test suite (standalone, no VS Code runtime needed)
+npm run test:base64
+
+# Run full VS Code integration tests
 npm test
 
 # Build for production (used before publishing)
@@ -113,12 +116,14 @@ src/
    - Uses `kubectl get secret` to retrieve the actual secret from the cluster
    - This means decryption requires cluster access and that the SealedSecret has been deployed
 
-6. **Base64 Handling** (`commands/base64.ts`, `utils/validation.ts`):
-   - `isProbablyBase64Value()` function uses heuristics to detect if a value is already base64 encoded
-   - Uses js-yaml for parsing instead of regex-based YAML manipulation
-   - Encoding: Converts plain text to base64, skips already-encoded values
-   - Decoding: Converts base64 to plain text, preserves binary data as base64
-   - Detects printable vs binary content to determine if decoding should be performed
+6. **Base64 Handling** (`commands/base64.ts`, `utils/shell.ts`):
+   - Uses the **system `base64` terminal binary** (same tool as `kubectl` / `openssl`) via `spawn()` — not Node.js `Buffer` heuristics
+   - `encodeWithBase64(value)` in `utils/shell.ts`: pipes raw UTF-8 bytes through `base64` stdin → stdout, strips wrapping newlines
+   - `decodeWithBase64(encoded)` in `utils/shell.ts`: pipes through `base64 -D` (macOS) / `base64 -d` (Linux), collects stdout as raw `Buffer` chunks joined once to preserve multi-byte UTF-8 sequences (emoji, CJK, Arabic, etc.)
+   - **Encode strategy**: roundtrip check (`decode → re-encode → compare`) to detect already-encoded values; normalises whitespace before comparison to handle line-wrapped base64 (TLS certs, SSH keys). Encodes `stringData` values and promotes them to `data`.
+   - **Decode strategy**: decodes ALL values in `.data` unconditionally — K8s Secret spec guarantees every `.data` value is base64. No heuristic detection needed.
+   - Binary detection post-decode (null bytes / control chars) keeps certs/keys as base64 in the YAML
+   - Test suite: `tests/run-tests.mjs` — 174 assertions across all 10 YAML fixtures, runnable with `npm run test:base64`
 
 ### Configuration Settings
 

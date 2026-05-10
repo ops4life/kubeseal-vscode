@@ -14,3 +14,18 @@ repos:
         language: system
         files: '(docs/|mkdocs\.yml|requirements\.txt)'
         pass_filenames: false
+
+    -   id: typecheck
+        name: TypeScript type check
+        entry: bash -c 'npx tsc -p ./ --noEmit'
+        language: system
+        files: '\.(ts|json)$'
+        exclude: '(node_modules|out)/'
+        pass_filenames: false
+
+    -   id: base64-tests
+        name: Base64 encode/decode test suite
+        entry: bash -c 'node tests/run-tests.mjs'
+        language: system
+        files: '(src/commands/base64\.ts|src/utils/shell\.ts|src/utils/validation\.ts|src/utils/yaml\.ts|tests/.*\.yaml|tests/run-tests\.mjs)$'
+        pass_filenames: false
