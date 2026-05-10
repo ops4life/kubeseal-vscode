@@ -4,11 +4,32 @@
   <img src="icon.png" alt="Kubeseal Icon" width="150" />
 </p>
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/ops4life.kubeseal-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://ops4life.github.io/kubeseal-vscode)
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode">
+    <img src="https://vsmarketplacebadges.dev/version/ops4life.kubeseal-vscode.svg?style=flat" alt="Version" />
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode">
+    <img src="https://vsmarketplacebadges.dev/installs/ops4life.kubeseal-vscode.svg?style=flat" alt="Installs" />
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode">
+    <img src="https://vsmarketplacebadges.dev/rating/ops4life.kubeseal-vscode.svg?style=flat" alt="Rating" />
+  </a>
+  <a href="https://github.com/ops4life/kubeseal-vscode/actions/workflows/ci.yaml">
+    <img src="https://img.shields.io/github/actions/workflow/status/ops4life/kubeseal-vscode/ci.yaml?branch=main&style=flat&logo=github" alt="CI" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/ops4life/kubeseal-vscode.svg?style=flat" alt="License" />
+  </a>
+  <a href="https://ops4life.github.io/kubeseal-vscode">
+    <img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=flat" alt="Docs" />
+  </a>
+  <a href="https://github.com/ops4life/kubeseal-vscode/issues">
+    <img src="https://img.shields.io/github/issues/ops4life/kubeseal-vscode?style=flat&logo=github" alt="Issues" />
+  </a>
+  <a href="https://github.com/ops4life/kubeseal-vscode/commits/main">
+    <img src="https://img.shields.io/github/last-commit/ops4life/kubeseal-vscode?style=flat&logo=git" alt="Last Commit" />
+  </a>
+</p>
 
 ## 📚 Table of Contents
 
