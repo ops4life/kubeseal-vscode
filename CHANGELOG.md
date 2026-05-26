@@ -1,3 +1,15 @@
+# [3.3.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.2.1...v3.3.0) (2026-05-26)
+
+
+### Bug Fixes
+
+* **extension:** fall back to active editor URI when encrypt/decrypt called without URI ([6631464](https://github.com/ops4life/kubeseal-vscode/commit/6631464865e40fc34a3ea93c5f9e393919d89350))
+
+
+### Features
+
+* update panel icon to Material design with centered k8s logo, optimize vsix bundle size ([1bd294f](https://github.com/ops4life/kubeseal-vscode/commit/1bd294fbe7da404662d60c865730d9e98128ebaa))
+
 ## [3.2.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.2.0...v3.2.1) (2026-05-26)
 
 
