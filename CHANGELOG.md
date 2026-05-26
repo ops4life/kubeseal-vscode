@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.2.0...v3.2.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* **ui:** save cert settings to Global scope, not Workspace ([b0d479b](https://github.com/ops4life/kubeseal-vscode/commit/b0d479b067e3f04946cf930ade6cf953ac04ecfc))
+
 # [3.2.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.1.1...v3.2.0) (2026-05-26)
 
 
