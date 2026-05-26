@@ -206,11 +206,15 @@ git push -u origin feat/new-feature
 # Create PR on GitHub
 ```
 
+> [!NOTE]
+> Always build a new VSIX package with `npm run package` after implementing changes to verify the package is bundled cleanly and correctly excludes reference directories (like `vscode-kubernetes-tools`).
+
 This ensures:
 - All changes go through CI checks
 - Code review process is followed
 - Clean git history on `main` branch
 - Protection of the main branch
+
 
 ## Code Style
 

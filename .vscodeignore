@@ -8,6 +8,7 @@ node_modules/
 
 # Keep icon files
 !*.png
+!assets/**
 
 # Development files
 .git/
@@ -48,3 +49,28 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Reference and test tools/repos
+tests/
+tests/**
+.superpowers/
+.antigravitycli/
+.claude/
+
+# Extra ignore rules for non-essential extension files
+kubernetes-svgrepo-com.svg
+docs/
+.gitleaks.toml
+.yamllint
+.eslintrc.json
+.prettierrc.json
+.nvmrc
+mkdocs.yml
+tsconfig.json
+requirements.txt
+renovate.json
+CLAUDE.md
+DEPLOYMENT.md
+*.vsix
+
+

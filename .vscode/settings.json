@@ -1,0 +1,4 @@
+{
+  "terminal.integrated.copyOnSelection": true,
+  "remote.autoForwardPortsFallback": 0
+}

@@ -8,7 +8,6 @@ Thumbs.db
 
 # IDE files
 .idea/*
-.vscode/settings.json
 sublime-project
 
 # Build output
