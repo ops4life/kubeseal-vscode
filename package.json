@@ -23,6 +23,24 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "kubeseal-sidebar",
+                    "title": "Kubeseal",
+                    "icon": "assets/panel-icon.svg"
+                }
+            ]
+        },
+        "views": {
+            "kubeseal-sidebar": [
+                {
+                    "type": "webview",
+                    "id": "kubeseal.panel",
+                    "name": "Kubeseal"
+                }
+            ]
+        },
         "commands": [
             {
                 "command": "kubeseal.encrypt",

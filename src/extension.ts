@@ -8,6 +8,7 @@ import { encryptSecret, decryptSecret } from './commands/secrets';
 import { encodeBase64Values, decodeBase64Values } from './commands/base64';
 import { selectCertificate, setCertificateFolder } from './commands/certificates';
 import { createStatusBarItem, updateStatusBar } from './ui/statusBar';
+import { KubesealPanelProvider } from './ui/panelProvider';
 import { initializeLogger, logInfo } from './utils/logger';
 
 /**
@@ -20,6 +21,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create and initialize status bar item
     createStatusBarItem(context);
+
+    // Register activity bar panel
+    const panelProvider = new KubesealPanelProvider(context.extensionUri);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(KubesealPanelProvider.viewType, panelProvider)
+    );
 
     // Register encrypt command
     context.subscriptions.push(
@@ -110,12 +117,20 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Listen for configuration changes to update status bar
+    // Listen for configuration changes to update status bar and panel
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration('kubeseal')) {
                 updateStatusBar();
+                panelProvider.refresh();
             }
+        })
+    );
+
+    // Refresh panel when active editor changes
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(() => {
+            panelProvider.refresh();
         })
     );
 }

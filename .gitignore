@@ -40,3 +40,4 @@ site/
 
 # extensions
 *.vsix
+.superpowers/
