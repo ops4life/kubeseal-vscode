@@ -1,3 +1,5 @@
+## [3.3.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.3.0...v3.3.1) (2026-05-26)
+
 # [3.3.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.2.1...v3.3.0) (2026-05-26)
 
 
