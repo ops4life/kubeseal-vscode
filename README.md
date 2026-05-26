@@ -43,6 +43,7 @@
   - [🛠️ Setup](#️-setup)
   - [📖 Usage](#-usage)
     - [Typical Workflow](#typical-workflow)
+    - [🖥️ Sidebar Panel](#️-sidebar-panel)
     - [🔐 Encrypting Secrets](#-encrypting-secrets)
     - [🔓 Decrypting Secrets](#-decrypting-secrets)
     - [🔧 Managing Certificates](#-managing-certificates)
@@ -83,6 +84,7 @@ For the best Kubernetes development experience, we recommend installing:
 - **🔐 Encrypt Secrets**: Right-click on YAML files containing Kubernetes secrets to encrypt them using kubeseal
 - **🔓 Decrypt Secrets**: Retrieve the original content of sealed secrets from your Kubernetes cluster
 - **📝 Base64 Encoding/Decoding**: Encode and decode base64 values using the system `base64` binary — handles Unicode, emoji, special characters, multiline values, TLS certs, and `stringData` promotion
+- **🖥️ Sidebar Panel**: A modern, interactive sidebar containing all utilities in one place. Quick-encode/decode text, check certificate status, run encryption/decryption on the active editor, and manage certificates directly.
 - **📂 Certificate Folder Management**: Configure a folder containing multiple kubeseal certificates and easily switch between them
 - **🔄 Active Certificate Selection**: Click on the status bar to select which certificate to use for encryption
 - **🎯 Context Menu Integration**: Access kubeseal operations directly from the file explorer and editor context menus
@@ -219,6 +221,20 @@ Here's a typical workflow for managing secrets with this extension:
 5. **Commit safely** - The encrypted SealedSecret can be safely committed to Git
 6. **Deploy** - Apply the SealedSecret to your Kubernetes cluster
 7. **Decrypt (if needed)** - Use "Decrypt Secret" to retrieve the original secret from the cluster
+
+### 🖥️ Sidebar Panel
+
+The extension features a modern, Material Design-inspired sidebar panel accessible via the Activity Bar (Kubeseal icon). It is divided into two tabs:
+
+#### 1. Tools Tab
+* **Base64 Converter**: Paste any text to quickly encode or decode without modifying your file, with a one-click copy button.
+* **Actions**:
+  * **Certificate Status**: Real-time status display of your active certificate (Green dot when loaded, Red when missing).
+  * **Active Editor Controls**: Quick **Encrypt** and **Decrypt** buttons that operate on the currently open YAML editor in VS Code.
+
+#### 2. Settings Tab
+* **Certs Folder**: Click the browse button to set your certificate store directory.
+* **Active Certificate**: A dropdown list to easily switch between your certificates (`.pem`, `.crt`, or `.cert` files) in the configured folder.
 
 ### 🔐 Encrypting Secrets
 
