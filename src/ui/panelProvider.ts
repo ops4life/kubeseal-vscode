@@ -76,7 +76,7 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
                 await config.update(
                     'activeCertFile',
                     message.value,
-                    vscode.ConfigurationTarget.Workspace
+                    vscode.ConfigurationTarget.Global
                 );
                 this._sendState(webview);
                 break;
