@@ -1,3 +1,11 @@
+# [3.2.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.1.1...v3.2.0) (2026-05-26)
+
+
+### Features
+
+* **ui:** add activity bar panel with Base64, Settings, and Actions tabs ([fa95433](https://github.com/ops4life/kubeseal-vscode/commit/fa95433849516cf43fdb823bc167c606ff8614c2))
+* **ui:** modernise activity panel UI/UX and update icons ([e4459cd](https://github.com/ops4life/kubeseal-vscode/commit/e4459cd035298e283b70ef351813e5fc64aa44cf))
+
 ## [3.1.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.1.0...v3.1.1) (2026-05-10)
 
 
