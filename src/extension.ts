@@ -30,7 +30,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register encrypt command
     context.subscriptions.push(
-        vscode.commands.registerCommand('kubeseal.encrypt', (uri: vscode.Uri) => {
+        vscode.commands.registerCommand('kubeseal.encrypt', (uri?: vscode.Uri) => {
+            const target = uri ?? vscode.window.activeTextEditor?.document.uri;
+            if (!target) {
+                vscode.window.showErrorMessage('No file selected. Open a Kubernetes Secret YAML file first.');
+                return;
+            }
             vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
@@ -38,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
                     cancellable: true,
                 },
                 async (progress, token) => {
-                    return await encryptSecret(uri, progress, token);
+                    return await encryptSecret(target, progress, token);
                 }
             );
         })
@@ -46,7 +51,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register decrypt command
     context.subscriptions.push(
-        vscode.commands.registerCommand('kubeseal.decrypt', (uri: vscode.Uri) => {
+        vscode.commands.registerCommand('kubeseal.decrypt', (uri?: vscode.Uri) => {
+            const target = uri ?? vscode.window.activeTextEditor?.document.uri;
+            if (!target) {
+                vscode.window.showErrorMessage('No file selected. Open a SealedSecret YAML file first.');
+                return;
+            }
             vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
@@ -54,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
                     cancellable: true,
                 },
                 async (progress, token) => {
-                    return await decryptSecret(uri, progress, token);
+                    return await decryptSecret(target, progress, token);
                 }
             );
         })
