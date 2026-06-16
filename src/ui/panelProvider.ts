@@ -105,6 +105,11 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
                 await vscode.commands.executeCommand('kubeseal.decrypt');
                 break;
             }
+            case 'reloadCerts': {
+                this._sendState(webview);
+                vscode.window.showInformationMessage('Kubeseal certificates reloaded.');
+                break;
+            }
             case 'getState': {
                 this._sendState(webview);
                 break;
@@ -191,6 +196,7 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
             // Lock/Unlock
             lock: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>`,
             unlock: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5-2.28 0-4.27 1.54-4.84 3.75l1.94.46C9.43 3.93 10.63 3 12 3c1.65 0 3 1.35 3 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`,
+            refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>`,
         };
 
         return `<!DOCTYPE html>
@@ -494,7 +500,26 @@ textarea.md-input.readonly {
 
 /* ── MD Folder Row ── */
 .md-folder-row { display: flex; gap: 6px; align-items: stretch; }
-.md-folder-row .md-input-outlined { flex: 1; }
+.md-folder-row .md-input-outlined, .md-folder-row .md-select { flex: 1; }
+
+.md-icon-btn.btn-small {
+  padding: 4px;
+  border-radius: 4px;
+  height: 24px;
+  width: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spinning {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
 
 /* ── MD Output wrap + copy chip ── */
 .md-output-wrap { position: relative; }
@@ -732,6 +757,9 @@ textarea.md-input.readonly {
         <button class="md-btn md-btn-tonal md-icon-btn" id="btn-browse" title="Browse for folder">
           <span class="md-icon">${icon.browse}</span>
         </button>
+        <button class="md-btn md-btn-tonal md-icon-btn" id="btn-reload-folder" title="Reload certificates">
+          <span class="md-icon">${icon.refresh}</span>
+        </button>
       </div>
       <div class="md-settings-desc">Directory containing .pem / .crt certificate files.</div>
     </div>
@@ -742,9 +770,14 @@ textarea.md-input.readonly {
       <span class="md-icon">${icon.key}</span> Active Certificate
     </div>
     <div class="md-settings-field">
-      <select class="md-select" id="active-cert">
-        <option value="">Set a certs folder first</option>
-      </select>
+      <div class="md-folder-row">
+        <select class="md-select" id="active-cert">
+          <option value="">Set a certs folder first</option>
+        </select>
+        <button class="md-btn md-btn-tonal md-icon-btn" id="btn-reload-settings" title="Reload certificates">
+          <span class="md-icon">${icon.refresh}</span>
+        </button>
+      </div>
       <div class="md-settings-desc">Certificate used to seal secrets.</div>
     </div>
   </div>
@@ -805,6 +838,44 @@ textarea.md-input.readonly {
   document.getElementById('active-cert').addEventListener('change', (e) => {
     const value = e.target.value;
     if (value) vscode.postMessage({ command: 'setActiveCert', value });
+  });
+
+  function triggerReload(btnId) {
+    const btn = document.getElementById(btnId);
+    if (!btn || btn.disabled) return;
+
+    // Disable all reload buttons and spin their icons
+    const reloadButtons = ['btn-reload-folder', 'btn-reload-settings'];
+    reloadButtons.forEach(id => {
+      const b = document.getElementById(id);
+      if (b) {
+        b.disabled = true;
+        const iconSpan = b.querySelector('.md-icon');
+        if (iconSpan) iconSpan.classList.add('spinning');
+      }
+    });
+
+    vscode.postMessage({ command: 'reloadCerts' });
+
+    // Fallback safety timeout
+    setTimeout(() => {
+      reloadButtons.forEach(id => {
+        const b = document.getElementById(id);
+        if (b) {
+          b.disabled = false;
+          const iconSpan = b.querySelector('.md-icon');
+          if (iconSpan) iconSpan.classList.remove('spinning');
+        }
+      });
+    }, 1500);
+  }
+
+  document.getElementById('btn-reload-folder').addEventListener('click', () => {
+    triggerReload('btn-reload-folder');
+  });
+
+  document.getElementById('btn-reload-settings').addEventListener('click', () => {
+    triggerReload('btn-reload-settings');
   });
 
   // ── Actions ───────────────────────────────────────────────────
@@ -908,6 +979,15 @@ textarea.md-input.readonly {
     encBtn.disabled = !state.activeEditorIsYaml;
     decBtn.disabled = !state.activeEditorIsYaml;
     hint.style.display = state.activeEditorIsYaml ? 'none' : '';
+
+    // Stop spin animation & re-enable buttons
+    document.querySelectorAll('.md-icon.spinning').forEach(el => {
+      el.classList.remove('spinning');
+    });
+    const reloadFolderBtn = document.getElementById('btn-reload-folder');
+    const reloadSettingsBtn = document.getElementById('btn-reload-settings');
+    if (reloadFolderBtn) reloadFolderBtn.disabled = false;
+    if (reloadSettingsBtn) reloadSettingsBtn.disabled = false;
   }
 
   window.addEventListener('message', event => {
