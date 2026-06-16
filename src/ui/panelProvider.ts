@@ -843,7 +843,7 @@ textarea.md-input.readonly {
   function triggerReload(btnId) {
     const btn = document.getElementById(btnId);
     if (!btn || btn.disabled) return;
-    
+
     // Disable all reload buttons and spin their icons
     const reloadButtons = ['btn-reload-folder', 'btn-reload-settings'];
     reloadButtons.forEach(id => {
