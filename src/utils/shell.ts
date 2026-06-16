@@ -301,7 +301,11 @@ export async function decodeWithBase64(encoded: string): Promise<string> {
                 // Decode the full buffer at once — safe for all Unicode + binary
                 resolve(Buffer.concat(stdoutChunks).toString('utf8'));
             } else {
-                reject(new Error(`base64 decode failed (exit ${code}): ${stderr || 'invalid base64 input'}`));
+                reject(
+                    new Error(
+                        `base64 decode failed (exit ${code}): ${stderr || 'invalid base64 input'}`
+                    )
+                );
             }
         });
 
