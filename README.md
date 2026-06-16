@@ -1,8 +1,8 @@
-# Kubeseal VSCode Extension
-
 <p align="center">
-  <img src="icon.png" alt="Kubeseal Icon" width="150" />
+  <img src="assets/banner.svg" alt="ops4life Kubeseal VSCode Banner" width="100%">
 </p>
+
+# Kubeseal VSCode Extension
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode">
