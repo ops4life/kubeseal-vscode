@@ -164,5 +164,9 @@
     },
     "dependencies": {
         "js-yaml": "^4.2.0"
+    },
+    "overrides": {
+        "undici": ">=6.27.0",
+        "@actions/http-client": ">=3.0.2"
     }
 }
