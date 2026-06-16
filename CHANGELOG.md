@@ -1,3 +1,10 @@
+# [3.5.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.4.2...v3.5.0) (2026-06-16)
+
+
+### Features
+
+* reload certificates ([#41](https://github.com/ops4life/kubeseal-vscode/issues/41)) ([532d880](https://github.com/ops4life/kubeseal-vscode/commit/532d88064ae6c2969c1bba20d884a96e1cfc0e20))
+
 ## [3.4.2](https://github.com/ops4life/kubeseal-vscode/compare/v3.4.1...v3.4.2) (2026-06-16)
 
 ## [3.4.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.4.0...v3.4.1) (2026-06-16)
