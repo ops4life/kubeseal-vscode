@@ -68,7 +68,40 @@ jobs:
         run: npm run compile
 
       - name: Package extension
-        run: vsce package --no-yarn
+        run: vsce package
+
+      - name: Validate VSIX runtime deps
+        run: |
+          # Unzip the VSIX (it's a zip) and check that every runtime dep
+          # listed in package.json[dependencies] is present inside it.
+          VSIX=$(ls *.vsix | head -1)
+          echo "Validating: $VSIX"
+          python3 - <<'EOF'
+          import zipfile, json, sys, os
+          vsix = next(f for f in os.listdir('.') if f.endswith('.vsix'))
+          with zipfile.ZipFile(vsix) as z:
+              names = z.namelist()
+              with z.open('extension/package.json') as f:
+                  pkg = json.load(f)
+          deps = list(pkg.get('dependencies', {}).keys())
+          if not deps:
+              print('No runtime dependencies declared — nothing to check.')
+              sys.exit(0)
+          missing = []
+          for dep in deps:
+              # Each dep must appear as a directory under extension/node_modules/<dep>/
+              expected = f'extension/node_modules/{dep}/'
+              found = any(n.startswith(expected) for n in names)
+              status = '✅' if found else '❌'
+              print(f'{status} {dep}')
+              if not found:
+                  missing.append(dep)
+          if missing:
+              print(f'\nFATAL: {len(missing)} runtime dep(s) missing from VSIX: {missing}')
+              print('Run: vsce package  (without --no-dependencies or --no-yarn)')
+              sys.exit(1)
+          print(f'\nAll {len(deps)} runtime dep(s) present in VSIX.')
+          EOF
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7
@@ -141,7 +174,7 @@ jobs:
           "
 
       - name: Validate with vsce
-        run: vsce package --no-yarn --no-git-tag-version
+        run: vsce package --no-git-tag-version
 
   compatibility-check:
     name: VS Code Compatibility Check

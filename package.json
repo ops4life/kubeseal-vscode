@@ -17,6 +17,8 @@
         "Other"
     ],
     "activationEvents": [
+        "onView:kubeseal.panel",
+        "onStartupFinished",
         "onLanguage:helm",
         "onLanguage:yaml",
         "onFileSystem:k8smsx"
@@ -139,7 +141,7 @@
         "lint:fix": "eslint src --ext ts --fix",
         "format": "prettier --write \"src/**/*.ts\"",
         "format:check": "prettier --check \"src/**/*.ts\"",
-        "package": "vsce package --no-yarn",
+        "package": "vsce package",
         "clean": "rimraf out *.vsix"
     },
     "devDependencies": {

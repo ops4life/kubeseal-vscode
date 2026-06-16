@@ -229,7 +229,10 @@ The extension features a modern, Material Design-inspired sidebar panel accessib
 #### 1. Tools Tab
 * **Base64 Converter**: Paste any text to quickly encode or decode without modifying your file, with a one-click copy button.
 * **Actions**:
-  * **Certificate Status**: Real-time status display of your active certificate (Green dot when loaded, Red when missing).
+  * **Certificate Status**: Real-time status display of your active certificate with colour-coded expiry information:
+    * 🟢 **Green** — certificate is valid, shows days remaining (e.g. `✓ Valid until Jun 30, 2027 (380d)`)
+    * 🟡 **Amber** — certificate expires within 30 days (e.g. `⚠ Expires in 12 days (Jun 28, 2026)`)
+    * 🔴 **Red** — no certificate selected, or certificate has expired (e.g. `⚠ Expired on Mar 15, 2026`)
   * **Active Editor Controls**: Quick **Encrypt** and **Decrypt** buttons that operate on the currently open YAML editor in VS Code.
 
 #### 2. Settings Tab

@@ -1,6 +1,15 @@
 import * as vscode from 'vscode';
 import { promises as fs } from 'fs';
+import * as crypto from 'crypto';
+import * as path from 'path';
 import { encodeWithBase64, decodeWithBase64 } from '../utils/shell';
+
+interface CertExpiry {
+    notAfter: string;      // ISO date string
+    daysLeft: number;      // negative = expired
+    isExpired: boolean;
+    isExpiringSoon: boolean; // within 30 days
+}
 
 interface PanelState {
     command: string;
@@ -8,6 +17,7 @@ interface PanelState {
     activeCertFile: string;
     certFiles: string[];
     activeEditorIsYaml: boolean;
+    certExpiry?: CertExpiry;
 }
 
 export class KubesealPanelProvider implements vscode.WebviewViewProvider {
@@ -116,12 +126,34 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
             ? /\.(yaml|yml)$/i.test(activeEditor.document.fileName)
             : false;
 
+        let certExpiry: CertExpiry | undefined;
+        if (certsFolder && activeCertFile) {
+            try {
+                const certPath = path.join(certsFolder, activeCertFile);
+                const pem = await fs.readFile(certPath, 'utf8');
+                const cert = new crypto.X509Certificate(pem);
+                const notAfter = new Date(cert.validTo);
+                const now = new Date();
+                const msLeft = notAfter.getTime() - now.getTime();
+                const daysLeft = Math.floor(msLeft / (1000 * 60 * 60 * 24));
+                certExpiry = {
+                    notAfter: notAfter.toISOString(),
+                    daysLeft,
+                    isExpired: daysLeft < 0,
+                    isExpiringSoon: daysLeft >= 0 && daysLeft <= 30,
+                };
+            } catch {
+                // cert unreadable or not a valid X.509 file
+            }
+        }
+
         const state: PanelState = {
             command: 'stateUpdate',
             certsFolder,
             activeCertFile,
             certFiles,
             activeEditorIsYaml,
+            certExpiry,
         };
 
         webview.postMessage(state);
@@ -506,18 +538,20 @@ textarea.md-input.readonly {
   padding: 9px 12px;
   border-radius: var(--md-radius-md);
   border: 1px solid var(--vscode-panel-border);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   background: var(--vscode-input-background);
   box-shadow: var(--md-elev1);
   transition: border-color var(--md-transition), background var(--md-transition);
 }
-.md-status-chip.ok  { border-color: rgba(78,201,78,.45);  background: rgba(78,201,78,.06); }
-.md-status-chip.err { border-color: rgba(241,76,76,.38); background: rgba(241,76,76,.06); }
+.md-status-chip.ok   { border-color: rgba(78,201,78,.45);  background: rgba(78,201,78,.06); }
+.md-status-chip.err  { border-color: rgba(241,76,76,.38);  background: rgba(241,76,76,.06); }
+.md-status-chip.warn { border-color: rgba(229,152,0,.45);  background: rgba(229,152,0,.07); }
 
 .md-dot-wrap { position: relative; width: 9px; height: 9px; flex-shrink: 0; }
 .md-dot { width: 9px; height: 9px; border-radius: 50%; }
-.md-dot.green { background: #4ec94e; }
-.md-dot.red   { background: #f14c4c; }
+.md-dot.green  { background: #4ec94e; }
+.md-dot.red    { background: #f14c4c; }
+.md-dot.amber  { background: #e59800; }
 
 .md-pulse {
   position: absolute;
@@ -528,6 +562,7 @@ textarea.md-input.readonly {
   animation: none;
 }
 .md-status-chip.ok .md-pulse { animation: mdPulse 2.4s ease-out infinite; }
+.md-status-chip.warn .md-pulse { border-color: #e59800; animation: mdPulse 2.4s ease-out infinite; }
 @keyframes mdPulse {
   0%   { transform: scale(.7); opacity: .7; }
   70%  { transform: scale(1.6); opacity: 0; }
@@ -551,6 +586,17 @@ textarea.md-input.readonly {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.md-status-sub {
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.md-status-chip.err  .md-status-sub { color: #f14c4c; }
+.md-status-chip.warn .md-status-sub { color: #e59800; }
+.md-status-chip.ok   .md-status-sub { color: #4ec94e; }
 
 /* ── MD Hint ── */
 .md-hint {
@@ -639,6 +685,7 @@ textarea.md-input.readonly {
     <div class="md-status-info">
       <div class="md-status-super">Certificate</div>
       <div class="md-status-label" id="cert-label">No certificate configured</div>
+      <div class="md-status-sub" id="cert-expiry-label" style="display:none"></div>
     </div>
   </div>
 
@@ -809,17 +856,44 @@ textarea.md-input.readonly {
     }
 
     // Actions status chip
-    const badge = document.getElementById('status-badge');
-    const dot   = document.getElementById('cert-dot');
-    const label = document.getElementById('cert-label');
+    const badge      = document.getElementById('status-badge');
+    const dot        = document.getElementById('cert-dot');
+    const label      = document.getElementById('cert-label');
+    const expiryEl   = document.getElementById('cert-expiry-label');
+
     if (state.activeCertFile) {
-      badge.className = 'md-status-chip ok';
-      dot.className   = 'md-dot green';
       label.textContent = state.activeCertFile;
+
+      const expiry = state.certExpiry;
+      if (expiry) {
+        expiryEl.style.display = '';
+        const expDate = new Date(expiry.notAfter);
+        const dateStr = expDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+        if (expiry.isExpired) {
+          badge.className = 'md-status-chip err';
+          dot.className   = 'md-dot red';
+          expiryEl.textContent = '⚠ Expired on ' + dateStr;
+        } else if (expiry.isExpiringSoon) {
+          badge.className = 'md-status-chip warn';
+          dot.className   = 'md-dot amber';
+          expiryEl.textContent = '⚠ Expires in ' + expiry.daysLeft + ' day' + (expiry.daysLeft === 1 ? '' : 's') + ' (' + dateStr + ')';
+        } else {
+          badge.className = 'md-status-chip ok';
+          dot.className   = 'md-dot green';
+          expiryEl.textContent = '✓ Valid until ' + dateStr + ' (' + expiry.daysLeft + 'd)';
+        }
+      } else {
+        // cert file exists but couldn't be parsed
+        badge.className = 'md-status-chip ok';
+        dot.className   = 'md-dot green';
+        expiryEl.style.display = 'none';
+      }
     } else {
       badge.className = 'md-status-chip err';
       dot.className   = 'md-dot red';
       label.textContent = 'No certificate configured';
+      expiryEl.style.display = 'none';
     }
 
     const encBtn = document.getElementById('btn-encrypt');
