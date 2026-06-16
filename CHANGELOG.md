@@ -1,3 +1,10 @@
+## [3.4.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.4.0...v3.4.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **deps:** resolve all Dependabot security vulnerabilities ([f141964](https://github.com/ops4life/kubeseal-vscode/commit/f141964108f49427127b06ed61d6ca17893af8eb))
+
 # [3.4.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.3.1...v3.4.0) (2026-06-16)
 
 
