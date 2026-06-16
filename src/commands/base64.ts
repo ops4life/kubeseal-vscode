@@ -49,7 +49,9 @@ async function isAlreadyBase64Encoded(value: string): Promise<boolean> {
     try {
         // Strip all whitespace so line-wrapped base64 compares cleanly
         const normalized = value.replace(/\s/g, '');
-        if (!normalized) {return false;}
+        if (!normalized) {
+            return false;
+        }
 
         const decoded = await decodeWithBase64(normalized);
         const reEncoded = await encodeWithBase64(decoded);
@@ -93,7 +95,9 @@ export async function encodeBase64Values(
     logInfo(`Starting base64 encoding for file: ${filePath}`);
 
     try {
-        if (token?.isCancellationRequested) {return;}
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
         progress?.report({ message: 'Reading file...' });
         const inputContent = await fs.readFile(filePath, 'utf8');
@@ -105,7 +109,9 @@ export async function encodeBase64Values(
             return;
         }
 
-        if (token?.isCancellationRequested) {return;}
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
         progress?.report({ message: 'Parsing and encoding values...' });
 
@@ -116,7 +122,9 @@ export async function encodeBase64Values(
         // Encode any value that fails the roundtrip check (i.e., not yet base64).
         if (secret.data) {
             for (const [key, value] of Object.entries(secret.data)) {
-                if (token?.isCancellationRequested) {return;}
+                if (token?.isCancellationRequested) {
+                    return;
+                }
 
                 if (value) {
                     const alreadyEncoded = await isAlreadyBase64Encoded(value);
@@ -150,7 +158,9 @@ export async function encodeBase64Values(
                 secret.data = {};
             }
             for (const [key, value] of Object.entries(secret.stringData)) {
-                if (token?.isCancellationRequested) {return;}
+                if (token?.isCancellationRequested) {
+                    return;
+                }
 
                 if (value !== undefined && value !== null) {
                     try {
@@ -168,7 +178,9 @@ export async function encodeBase64Values(
         }
 
         if (encodedCount > 0) {
-            if (token?.isCancellationRequested) {return;}
+            if (token?.isCancellationRequested) {
+                return;
+            }
             progress?.report({ message: 'Saving encoded file...' });
             const outputYaml = toYaml(secret);
             await fs.writeFile(filePath, outputYaml, 'utf8');
@@ -176,9 +188,7 @@ export async function encodeBase64Values(
             vscode.window.showInformationMessage(`Encoded ${encodedCount} value(s) to base64`);
         } else {
             logInfo(`All values in ${filePath} are already base64 encoded`);
-            vscode.window.showInformationMessage(
-                'All values in "data" are already base64 encoded'
-            );
+            vscode.window.showInformationMessage('All values in "data" are already base64 encoded');
         }
     } catch (error) {
         if (
@@ -212,7 +222,9 @@ export async function decodeBase64Values(
     logInfo(`Starting base64 decoding for file: ${filePath}`);
 
     try {
-        if (token?.isCancellationRequested) {return;}
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
         progress?.report({ message: 'Reading file...' });
         const inputContent = await fs.readFile(filePath, 'utf8');
@@ -224,7 +236,9 @@ export async function decodeBase64Values(
             return;
         }
 
-        if (token?.isCancellationRequested) {return;}
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
         progress?.report({ message: 'Parsing and decoding base64 values...' });
 
@@ -236,7 +250,9 @@ export async function decodeBase64Values(
         // The K8s Secret spec mandates that every .data value is base64.
         if (secret.data) {
             for (const [key, value] of Object.entries(secret.data)) {
-                if (token?.isCancellationRequested) {return;}
+                if (token?.isCancellationRequested) {
+                    return;
+                }
 
                 if (value) {
                     try {
@@ -260,7 +276,9 @@ export async function decodeBase64Values(
         }
 
         if (decodedCount > 0) {
-            if (token?.isCancellationRequested) {return;}
+            if (token?.isCancellationRequested) {
+                return;
+            }
             progress?.report({ message: 'Saving decoded file...' });
             const outputYaml = toYaml(secret);
             await fs.writeFile(filePath, outputYaml, 'utf8');

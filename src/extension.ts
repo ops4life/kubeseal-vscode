@@ -33,7 +33,9 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('kubeseal.encrypt', (uri?: vscode.Uri) => {
             const target = uri ?? vscode.window.activeTextEditor?.document.uri;
             if (!target) {
-                vscode.window.showErrorMessage('No file selected. Open a Kubernetes Secret YAML file first.');
+                vscode.window.showErrorMessage(
+                    'No file selected. Open a Kubernetes Secret YAML file first.'
+                );
                 return;
             }
             vscode.window.withProgress(
@@ -54,7 +56,9 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('kubeseal.decrypt', (uri?: vscode.Uri) => {
             const target = uri ?? vscode.window.activeTextEditor?.document.uri;
             if (!target) {
-                vscode.window.showErrorMessage('No file selected. Open a SealedSecret YAML file first.');
+                vscode.window.showErrorMessage(
+                    'No file selected. Open a SealedSecret YAML file first.'
+                );
                 return;
             }
             vscode.window.withProgress(
