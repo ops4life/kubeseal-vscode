@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.3.1...v3.4.0) (2026-06-16)
+
+
+### Features
+
+* add certificate expiration status to sidebar panel ([572aa30](https://github.com/ops4life/kubeseal-vscode/commit/572aa307873e2a363e77a366ef75df9bca60b619))
+
 ## [3.3.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.3.0...v3.3.1) (2026-05-26)
 
 # [3.3.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.2.1...v3.3.0) (2026-05-26)
