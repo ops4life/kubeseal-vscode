@@ -558,6 +558,22 @@ textarea.md-input.readonly {
 }
 .md-error.visible { display: flex; }
 
+/* ── MD Warn banner ── */
+.md-warn {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: var(--md-radius-sm);
+  background: var(--vscode-inputValidation-warningBackground, rgba(229,152,0,.12));
+  border: 1px solid var(--vscode-inputValidation-warningBorder, rgba(229,152,0,.5));
+  color: var(--vscode-inputValidation-warningForeground, #e59800);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.md-warn.visible { display: flex; }
+
 /* ── MD Divider ── */
 .md-divider { height: 1px; background: var(--vscode-panel-border); margin: 16px 0; opacity: .55; }
 
@@ -673,6 +689,10 @@ textarea.md-input.readonly {
     </div>
     <div class="md-field">
       <textarea class="md-input" id="b64-input" rows="4" placeholder="Paste a value to encode or decode…"></textarea>
+    </div>
+    <div id="b64-warn" class="md-warn">
+      <span class="md-icon">${icon.warn}</span>
+      <span id="b64-warn-text">Leading/trailing whitespace detected — it will be trimmed automatically.</span>
     </div>
     <div class="md-btn-row">
       <button class="md-btn" id="btn-encode">
@@ -805,17 +825,31 @@ textarea.md-input.readonly {
   });
 
   // ── Base64 ────────────────────────────────────────────────────
+  document.getElementById('b64-input').addEventListener('input', () => {
+    const raw = document.getElementById('b64-input').value;
+    const warn = document.getElementById('b64-warn');
+    if (raw && raw !== raw.trim()) {
+      warn.classList.add('visible');
+    } else {
+      warn.classList.remove('visible');
+    }
+  });
+
   document.getElementById('btn-encode').addEventListener('click', () => {
-    const value = document.getElementById('b64-input').value;
-    if (!value) return;
+    const raw = document.getElementById('b64-input').value;
+    if (!raw) return;
+    const value = raw.trim();
     clearError();
+    document.getElementById('b64-warn').classList.remove('visible');
     vscode.postMessage({ command: 'encode', value });
   });
 
   document.getElementById('btn-decode').addEventListener('click', () => {
-    const value = document.getElementById('b64-input').value;
-    if (!value) return;
+    const raw = document.getElementById('b64-input').value;
+    if (!raw) return;
+    const value = raw.trim();
     clearError();
+    document.getElementById('b64-warn').classList.remove('visible');
     vscode.postMessage({ command: 'decode', value });
   });
 

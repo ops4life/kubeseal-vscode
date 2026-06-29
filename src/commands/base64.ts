@@ -21,7 +21,7 @@
 import * as vscode from 'vscode';
 import { promises as fs } from 'fs';
 import { parseSecret, toYaml, isKubernetesSecret } from '../utils/yaml';
-import { logInfo, logError } from '../utils/logger';
+import { logInfo, logError, logWarning, showOutput } from '../utils/logger';
 import { encodeWithBase64, decodeWithBase64 } from '../utils/shell';
 
 // ---------------------------------------------------------------------------
@@ -245,6 +245,7 @@ export async function decodeBase64Values(
         const secret = parseSecret(inputContent);
         let decodedCount = 0;
         let skippedBinaryCount = 0;
+        const whitespaceKeys: string[] = [];
 
         // Decode ALL values in .data — no heuristic check needed.
         // The K8s Secret spec mandates that every .data value is base64.
@@ -256,7 +257,12 @@ export async function decodeBase64Values(
 
                 if (value) {
                     try {
-                        const decoded = await decodeWithBase64(value);
+                        const trimmed = value.trim();
+                        if (trimmed !== value) {
+                            whitespaceKeys.push(key);
+                            secret.data[key] = trimmed;
+                        }
+                        const decoded = await decodeWithBase64(trimmed);
 
                         if (isBinaryContent(decoded)) {
                             // Keep cert / key material as base64 in the YAML
@@ -273,6 +279,13 @@ export async function decodeBase64Values(
                     }
                 }
             }
+        }
+
+        if (whitespaceKeys.length > 0) {
+            const msg = `Whitespace trimmed from ${whitespaceKeys.length} value(s) before decoding: ${whitespaceKeys.join(', ')}`;
+            logWarning(msg);
+            showOutput();
+            vscode.window.showWarningMessage(msg);
         }
 
         if (decodedCount > 0) {
