@@ -1,3 +1,10 @@
+# [3.6.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.5.0...v3.6.0) (2026-06-29)
+
+
+### Features
+
+* **base64:** trim whitespace and warn before decode ([#45](https://github.com/ops4life/kubeseal-vscode/issues/45)) ([d2ad69d](https://github.com/ops4life/kubeseal-vscode/commit/d2ad69dd3da1b0700406f76cfd26ccc1cb1c3c61))
+
 # [3.5.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.4.2...v3.5.0) (2026-06-16)
 
 
