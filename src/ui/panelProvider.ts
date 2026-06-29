@@ -63,7 +63,7 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
                     const result = await encodeWithBase64(message.value);
                     webview.postMessage({ command: 'encodeResult', value: result });
                 } catch (e) {
-                    webview.postMessage({ command: 'error', message: String(e) });
+                    webview.postMessage({ command: 'error', message: String(e), operation: 'encode' });
                 }
                 break;
             }
@@ -75,7 +75,7 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
                     const result = await decodeWithBase64(message.value);
                     webview.postMessage({ command: 'decodeResult', value: result });
                 } catch (e) {
-                    webview.postMessage({ command: 'error', message: String(e) });
+                    webview.postMessage({ command: 'error', message: String(e), operation: 'decode' });
                 }
                 break;
             }
@@ -927,8 +927,15 @@ textarea.md-input.readonly {
     document.getElementById('b64-error-text').textContent = '';
   }
 
-  function showError(msg) {
-    document.getElementById('b64-error-text').textContent = msg.replace(/^Error: /, '');
+  function showError(msg, operation) {
+    const clean = msg.replace(/^Error: /, '');
+    let friendly = clean;
+    if (/invalid input|exit 1/.test(clean)) {
+      friendly = operation === 'encode'
+        ? 'Encode failed. Input may contain unsupported characters.'
+        : 'Invalid base64 input. Check for typos or unsupported characters.';
+    }
+    document.getElementById('b64-error-text').textContent = friendly;
     document.getElementById('b64-error').classList.add('visible');
   }
 
@@ -1029,7 +1036,7 @@ textarea.md-input.readonly {
     switch (msg.command) {
       case 'encodeResult': showOutput(msg.value); break;
       case 'decodeResult': showOutput(msg.value); break;
-      case 'error':        showError(msg.message); break;
+      case 'error':        showError(msg.message, msg.operation); break;
       case 'stateUpdate':  updateState(msg); break;
     }
   });
