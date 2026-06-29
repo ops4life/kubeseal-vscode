@@ -1,3 +1,10 @@
+## [3.6.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.6.0...v3.6.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* **panel:** show friendly messages for base64 encode/decode errors ([#46](https://github.com/ops4life/kubeseal-vscode/issues/46)) ([2fd2bab](https://github.com/ops4life/kubeseal-vscode/commit/2fd2babd506616c5951f88570515aed1bbf1ed98))
+
 # [3.6.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.5.0...v3.6.0) (2026-06-29)
 
 
