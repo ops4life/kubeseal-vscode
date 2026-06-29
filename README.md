@@ -64,6 +64,8 @@
 
 **Install from VS Code Marketplace:**
 
+Install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ops4life.kubeseal-vscode), or:
+
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X)
 3. Search for "Kubeseal VSCode"
