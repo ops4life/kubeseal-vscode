@@ -1,3 +1,10 @@
+## [3.7.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.7.0...v3.7.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* exclude active certificate from statusbar selection list ([c7de0c3](https://github.com/ops4life/kubeseal-vscode/commit/c7de0c31ac4d0e86341badac6c912405f4473d80))
+
 # [3.7.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.6.2...v3.7.0) (2026-07-20)
 
 
