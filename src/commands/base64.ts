@@ -23,6 +23,7 @@ import { promises as fs } from 'fs';
 import { parseSecret, toYaml, isKubernetesSecret } from '../utils/yaml';
 import { logInfo, logError, logWarning, showOutput } from '../utils/logger';
 import { encodeWithBase64, decodeWithBase64 } from '../utils/shell';
+import { KubernetesSecret } from '../types/kubernetes';
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -73,6 +74,53 @@ function isBinaryContent(decoded: string): boolean {
         // eslint-disable-next-line no-control-regex
         /[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(decoded)
     );
+}
+
+/**
+ * Decodes all `.data` values of a Kubernetes Secret in place using the system
+ * `base64` terminal command. The K8s Secret spec guarantees every `.data`
+ * value is base64, so no heuristic detection is needed. Binary values (certs,
+ * keys) are detected post-decode and left as base64.
+ *
+ * Shared by both the file-based decode command and the cluster-based
+ * view-decoded-secret command so binary detection stays in one place.
+ */
+export async function decodeSecretData(secret: KubernetesSecret): Promise<{
+    decodedCount: number;
+    skippedBinaryCount: number;
+    whitespaceKeys: string[];
+}> {
+    let decodedCount = 0;
+    let skippedBinaryCount = 0;
+    const whitespaceKeys: string[] = [];
+
+    if (secret.data) {
+        for (const [key, value] of Object.entries(secret.data)) {
+            if (value) {
+                try {
+                    const trimmed = value.trim();
+                    if (trimmed !== value) {
+                        whitespaceKeys.push(key);
+                        secret.data[key] = trimmed;
+                    }
+                    const decoded = await decodeWithBase64(trimmed);
+
+                    if (isBinaryContent(decoded)) {
+                        skippedBinaryCount++;
+                    } else {
+                        secret.data[key] = decoded;
+                        decodedCount++;
+                    }
+                } catch (error) {
+                    vscode.window.showWarningMessage(
+                        `Failed to decode value for key '${key}': ${error}`
+                    );
+                }
+            }
+        }
+    }
+
+    return { decodedCount, skippedBinaryCount, whitespaceKeys };
 }
 
 // ---------------------------------------------------------------------------
@@ -243,42 +291,17 @@ export async function decodeBase64Values(
         progress?.report({ message: 'Parsing and decoding base64 values...' });
 
         const secret = parseSecret(inputContent);
-        let decodedCount = 0;
-        let skippedBinaryCount = 0;
-        const whitespaceKeys: string[] = [];
+
+        if (token?.isCancellationRequested) {
+            return;
+        }
 
         // Decode ALL values in .data — no heuristic check needed.
         // The K8s Secret spec mandates that every .data value is base64.
-        if (secret.data) {
-            for (const [key, value] of Object.entries(secret.data)) {
-                if (token?.isCancellationRequested) {
-                    return;
-                }
-
-                if (value) {
-                    try {
-                        const trimmed = value.trim();
-                        if (trimmed !== value) {
-                            whitespaceKeys.push(key);
-                            secret.data[key] = trimmed;
-                        }
-                        const decoded = await decodeWithBase64(trimmed);
-
-                        if (isBinaryContent(decoded)) {
-                            // Keep cert / key material as base64 in the YAML
-                            logInfo(`Skipping binary value for key '${key}' (keeping as base64)`);
-                            skippedBinaryCount++;
-                        } else {
-                            secret.data[key] = decoded;
-                            decodedCount++;
-                        }
-                    } catch (error) {
-                        vscode.window.showWarningMessage(
-                            `Failed to decode value for key '${key}': ${error}`
-                        );
-                    }
-                }
-            }
+        const { decodedCount, skippedBinaryCount, whitespaceKeys } =
+            await decodeSecretData(secret);
+        if (skippedBinaryCount > 0) {
+            logInfo(`Skipped ${skippedBinaryCount} binary value(s) (kept as base64)`);
         }
 
         if (whitespaceKeys.length > 0) {
