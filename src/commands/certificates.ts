@@ -95,6 +95,14 @@ export async function selectCertificate(): Promise<void> {
         return;
     }
 
+    const activeCertFile = config.get<string>('activeCertFile', '');
+    files = files.filter((f) => f !== activeCertFile);
+
+    if (files.length === 0) {
+        vscode.window.showInformationMessage('No other certificates available to select.');
+        return;
+    }
+
     const selected = await vscode.window.showQuickPick(files, {
         placeHolder: 'Select certificate file to use',
     });
