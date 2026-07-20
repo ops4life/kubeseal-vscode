@@ -1,3 +1,10 @@
+# [3.7.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.6.2...v3.7.0) (2026-07-20)
+
+
+### Features
+
+* view decoded Kubernetes secrets from cluster in panel ([#51](https://github.com/ops4life/kubeseal-vscode/issues/51)) ([bc1f2bc](https://github.com/ops4life/kubeseal-vscode/commit/bc1f2bc543dad0acdbac0352c62b1456fff523b0))
+
 ## [3.6.2](https://github.com/ops4life/kubeseal-vscode/compare/v3.6.1...v3.6.2) (2026-06-29)
 
 ## [3.6.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.6.0...v3.6.1) (2026-06-29)
