@@ -5,11 +5,19 @@
 import * as vscode from 'vscode';
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { execKubeseal, execKubectl } from '../utils/shell';
-import { isKubernetesSecret, isSealedSecret, extractSecretMetadata } from '../utils/yaml';
+import * as os from 'os';
+import { execKubeseal, execKubectl, getSecretYaml } from '../utils/shell';
+import {
+    isKubernetesSecret,
+    isSealedSecret,
+    extractSecretMetadata,
+    parseSecret,
+    toYaml,
+} from '../utils/yaml';
 import { validateSecretMetadata } from '../utils/validation';
 import { getCurrentCertificatePath } from './certificates';
 import { logInfo, logError } from '../utils/logger';
+import { decodeSecretData } from './base64';
 
 /**
  * Command to encrypt a Kubernetes Secret using kubeseal
@@ -235,6 +243,76 @@ export async function decryptSecret(
         } else if (result === 'View Documentation') {
             vscode.env.openExternal(
                 vscode.Uri.parse('https://github.com/bitnami-labs/sealed-secrets')
+            );
+        }
+    }
+}
+
+/**
+ * Fetches a Secret directly from the cluster, decodes its `.data` values,
+ * writes the result to a temp file, and opens it for viewing.
+ */
+export async function viewDecryptedSecret(
+    namespace: string,
+    name: string,
+    token: vscode.CancellationToken
+): Promise<void> {
+    logInfo(`Viewing decoded secret: ${name} in namespace ${namespace}`);
+
+    try {
+        validateSecretMetadata({ name, namespace });
+
+        if (token.isCancellationRequested) {
+            return;
+        }
+
+        const rawYaml = await getSecretYaml(namespace, name, token);
+
+        if (!isKubernetesSecret(rawYaml)) {
+            vscode.window.showWarningMessage(
+                `"${name}" in namespace "${namespace}" does not appear to be a Kubernetes Secret`
+            );
+            return;
+        }
+
+        if (token.isCancellationRequested) {
+            return;
+        }
+
+        const secret = parseSecret(rawYaml);
+        await decodeSecretData(secret);
+
+        if (token.isCancellationRequested) {
+            return;
+        }
+
+        const outputYaml = toYaml(secret);
+        const outputPath = path.join(os.tmpdir(), `${namespace}-${name}-decoded.yaml`);
+        await fs.writeFile(outputPath, outputYaml, 'utf8');
+
+        logInfo(`Wrote decoded secret to: ${outputPath}`);
+
+        const document = await vscode.workspace.openTextDocument(outputPath);
+        await vscode.window.showTextDocument(document);
+    } catch (error) {
+        if (
+            token.isCancellationRequested ||
+            (error instanceof Error && error.message.includes('cancelled'))
+        ) {
+            logInfo('View decoded secret operation was cancelled');
+            return;
+        }
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logError(`Failed to view decoded secret: ${name} in namespace ${namespace}`, error);
+
+        const result = await vscode.window.showErrorMessage(
+            `Failed to fetch secret: ${errorMessage}`,
+            'Check kubectl Access'
+        );
+
+        if (result === 'Check kubectl Access') {
+            vscode.env.openExternal(
+                vscode.Uri.parse('https://kubernetes.io/docs/tasks/tools/#kubectl')
             );
         }
     }

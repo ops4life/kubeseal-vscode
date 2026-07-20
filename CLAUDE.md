@@ -71,7 +71,8 @@ src/
 ├── types/
 │   └── kubernetes.ts        # TypeScript type definitions for K8s resources
 ├── ui/
-│   └── statusBar.ts         # Status bar management
+│   ├── statusBar.ts         # Status bar management
+│   └── panelProvider.ts     # Activity bar panel webview (Tools/View/Settings tabs)
 └── utils/
     ├── shell.ts             # Shell command execution (uses spawn for security)
     ├── validation.ts        # Input validation and security checks
@@ -123,7 +124,14 @@ src/
    - **Encode strategy**: roundtrip check (`decode → re-encode → compare`) to detect already-encoded values; normalises whitespace before comparison to handle line-wrapped base64 (TLS certs, SSH keys). Encodes `stringData` values and promotes them to `data`.
    - **Decode strategy**: decodes ALL values in `.data` unconditionally — K8s Secret spec guarantees every `.data` value is base64. No heuristic detection needed.
    - Binary detection post-decode (null bytes / control chars) keeps certs/keys as base64 in the YAML
+   - Decode logic (binary detection, whitespace-trim tracking) lives in the exported `decodeSecretData(secret)` helper in `commands/base64.ts`, mutating `secret.data` in place — shared by `decodeBase64Values` (file-based) and `viewDecryptedSecret` (cluster-based, see below)
    - Test suite: `tests/run-tests.mjs` — 174 assertions across all 10 YAML fixtures, runnable with `npm run test:base64`
+
+7. **View Decoded Secret from Cluster** (panel-only, `commands/secrets.ts` + `ui/panelProvider.ts`):
+   - Panel's **View** tab lets the user pick a namespace and secret name from dropdowns populated live via `kubectl get ns` / `kubectl get secrets -n <ns>` (`listNamespaces`/`listSecrets` in `utils/shell.ts`); results are sorted alphabetically so typing a letter jumps to the right entry
+   - On selection, `viewDecryptedSecret(namespace, name, token)` fetches the Secret with `kubectl get secret -o yaml` (`getSecretYaml`), decodes all `.data` values via `decodeSecretData`, and writes the result to `os.tmpdir()/{namespace}-{name}-decoded.yaml` — **not** the workspace, to avoid an accidentally-committed plaintext secret
+   - The decoded file is opened directly in the editor for viewing
+   - No new command-palette command or `contributes.commands` entry — this flow is panel-only
 
 ### Configuration Settings
 

@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { promises as fs } from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
-import { encodeWithBase64, decodeWithBase64 } from '../utils/shell';
+import { encodeWithBase64, decodeWithBase64, listNamespaces, listSecrets } from '../utils/shell';
+import { viewDecryptedSecret } from '../commands/secrets';
 
 interface CertExpiry {
     notAfter: string; // ISO date string
@@ -51,7 +52,7 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
     }
 
     private async _handleMessage(
-        message: { command: string; value?: string },
+        message: { command: string; value?: string; namespace?: string; name?: string },
         webview: vscode.Webview
     ): Promise<void> {
         switch (message.command) {
@@ -112,6 +113,61 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
             }
             case 'getState': {
                 this._sendState(webview);
+                break;
+            }
+            case 'listNamespaces': {
+                const cts = new vscode.CancellationTokenSource();
+                try {
+                    const namespaces = (await listNamespaces(cts.token)).sort((a, b) =>
+                        a.localeCompare(b)
+                    );
+                    webview.postMessage({ command: 'namespacesResult', namespaces });
+                } catch (e) {
+                    webview.postMessage({
+                        command: 'viewError',
+                        message: `Failed to list namespaces: ${String(e).replace(/^Error: /, '')}`,
+                    });
+                } finally {
+                    cts.dispose();
+                }
+                break;
+            }
+            case 'listSecrets': {
+                if (!message.namespace) {
+                    return;
+                }
+                const cts = new vscode.CancellationTokenSource();
+                try {
+                    const secrets = (await listSecrets(message.namespace, cts.token)).sort(
+                        (a, b) => a.localeCompare(b)
+                    );
+                    webview.postMessage({ command: 'secretsResult', secrets });
+                } catch (e) {
+                    webview.postMessage({
+                        command: 'viewError',
+                        message: `Failed to list secrets: ${String(e).replace(/^Error: /, '')}`,
+                    });
+                } finally {
+                    cts.dispose();
+                }
+                break;
+            }
+            case 'viewSecret': {
+                if (!message.namespace || !message.name) {
+                    return;
+                }
+                const cts = new vscode.CancellationTokenSource();
+                try {
+                    await viewDecryptedSecret(message.namespace, message.name, cts.token);
+                    webview.postMessage({ command: 'viewSecretDone' });
+                } catch (e) {
+                    webview.postMessage({
+                        command: 'viewError',
+                        message: `Failed to view secret: ${String(e).replace(/^Error: /, '')}`,
+                    });
+                } finally {
+                    cts.dispose();
+                }
                 break;
             }
         }
@@ -197,6 +253,9 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
             lock: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>`,
             unlock: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5-2.28 0-4.27 1.54-4.84 3.75l1.94.46C9.43 3.93 10.63 3 12 3c1.65 0 3 1.35 3 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`,
             refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>`,
+            // View tab icons
+            view: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`,
+            cluster: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7v10l10 5 10-5V7L12 2zm0 2.24L18.5 7.5 12 10.76 5.5 7.5 12 4.24zM4 9.18l7 3.5v7.14l-7-3.5V9.18zm9 10.64v-7.14l7-3.5v7.14l-7 3.5z"/></svg>`,
         };
 
         return `<!DOCTYPE html>
@@ -669,6 +728,10 @@ textarea.md-input.readonly {
     <span class="md-icon">${icon.swap}</span>
     Tools
   </div>
+  <div class="tab" data-tab="view" role="tab" aria-selected="false">
+    <span class="md-icon">${icon.view}</span>
+    View
+  </div>
   <div class="tab" data-tab="settings" role="tab" aria-selected="false">
     <span class="md-icon">${icon.settings}</span>
     Settings
@@ -756,6 +819,58 @@ textarea.md-input.readonly {
       <span class="md-icon">${icon.info}</span>
       Open a YAML file in the editor to enable.
     </div>
+  </div>
+
+</div>
+
+<!-- ── View Tab: browse & decode a live cluster Secret ── -->
+<div id="tab-view" class="tab-content" role="tabpanel">
+
+  <div class="md-section">
+    <span class="md-icon">${icon.cluster}</span> Cluster Secret
+  </div>
+
+  <div class="md-card">
+    <div class="md-label">
+      <span class="md-icon">${icon.folder}</span> Namespace
+    </div>
+    <div class="md-settings-field">
+      <div class="md-folder-row">
+        <select class="md-select" id="view-namespace">
+          <option value="">Loading namespaces…</option>
+        </select>
+        <button class="md-btn md-btn-tonal md-icon-btn" id="btn-reload-namespaces" title="Reload namespaces">
+          <span class="md-icon">${icon.refresh}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="md-card">
+    <div class="md-label">
+      <span class="md-icon">${icon.key}</span> Secret
+    </div>
+    <div class="md-settings-field">
+      <select class="md-select" id="view-secret" disabled>
+        <option value="">Select a namespace first</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="md-btn-row">
+    <button class="md-btn" id="btn-view-secret" disabled>
+      <span class="md-icon">${icon.view}</span> View Decoded Secret
+    </button>
+  </div>
+
+  <div id="view-error" class="md-error">
+    <span class="md-icon">${icon.warn}</span>
+    <span id="view-error-text"></span>
+  </div>
+
+  <div class="md-hint">
+    <span class="md-icon">${icon.info}</span>
+    Decoded values are written to a temp file (outside the workspace) and opened for viewing.
   </div>
 
 </div>
@@ -912,6 +1027,98 @@ textarea.md-input.readonly {
     triggerReload('btn-reload-settings');
   });
 
+  // ── View (cluster secret) ────────────────────────────────────
+  let viewNamespacesLoaded = false;
+
+  function clearViewError() {
+    document.getElementById('view-error').classList.remove('visible');
+    document.getElementById('view-error-text').textContent = '';
+  }
+
+  function showViewError(msg) {
+    document.getElementById('view-error-text').textContent = msg;
+    document.getElementById('view-error').classList.add('visible');
+  }
+
+  function updateViewButtonState() {
+    const ns = document.getElementById('view-namespace').value;
+    const secret = document.getElementById('view-secret').value;
+    document.getElementById('btn-view-secret').disabled = !ns || !secret;
+  }
+
+  function populateSelect(id, items, emptyLabel, placeholderLabel) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    if (!items || items.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = emptyLabel;
+      opt.disabled = true;
+      sel.appendChild(opt);
+      sel.disabled = true;
+      return;
+    }
+    sel.disabled = false;
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = placeholderLabel;
+    sel.appendChild(placeholder);
+    items.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById('view-namespace').addEventListener('change', (e) => {
+    clearViewError();
+    const secretSel = document.getElementById('view-secret');
+    secretSel.innerHTML = '<option value="">Loading secrets…</option>';
+    secretSel.disabled = true;
+    updateViewButtonState();
+    const namespace = e.target.value;
+    if (namespace) {
+      vscode.postMessage({ command: 'listSecrets', namespace });
+    } else {
+      populateSelect('view-secret', [], 'No secrets found', '— select —');
+      updateViewButtonState();
+    }
+  });
+
+  document.getElementById('view-secret').addEventListener('change', () => {
+    updateViewButtonState();
+  });
+
+  document.getElementById('btn-reload-namespaces').addEventListener('click', () => {
+    clearViewError();
+    document.getElementById('view-namespace').innerHTML = '<option value="">Loading namespaces…</option>';
+    document.getElementById('view-namespace').disabled = true;
+    vscode.postMessage({ command: 'listNamespaces' });
+  });
+
+  document.getElementById('btn-view-secret').addEventListener('click', () => {
+    const namespace = document.getElementById('view-namespace').value;
+    const name = document.getElementById('view-secret').value;
+    if (!namespace || !name) return;
+    clearViewError();
+    const btn = document.getElementById('btn-view-secret');
+    btn.disabled = true;
+    vscode.postMessage({ command: 'viewSecret', namespace, name });
+  });
+
+  // Fetch namespaces the first time the View tab is opened
+  document.querySelectorAll('.tab').forEach(tab => {
+    if (tab.dataset.tab === 'view') {
+      tab.addEventListener('click', () => {
+        if (!viewNamespacesLoaded) {
+          viewNamespacesLoaded = true;
+          vscode.postMessage({ command: 'listNamespaces' });
+        }
+      });
+    }
+  });
+
   // ── Actions ───────────────────────────────────────────────────
   document.getElementById('btn-encrypt').addEventListener('click', () => {
     vscode.postMessage({ command: 'encryptFile' });
@@ -1038,6 +1245,27 @@ textarea.md-input.readonly {
       case 'decodeResult': showOutput(msg.value); break;
       case 'error':        showError(msg.message, msg.operation); break;
       case 'stateUpdate':  updateState(msg); break;
+      case 'namespacesResult': {
+        populateSelect('view-namespace', msg.namespaces, 'No namespaces found', '— select —');
+        populateSelect('view-secret', [], 'Select a namespace first', '— select —');
+        updateViewButtonState();
+        break;
+      }
+      case 'secretsResult': {
+        populateSelect('view-secret', msg.secrets, 'No secrets found', '— select —');
+        updateViewButtonState();
+        break;
+      }
+      case 'viewError': {
+        showViewError(msg.message);
+        document.getElementById('btn-view-secret').disabled = false;
+        break;
+      }
+      case 'viewSecretDone': {
+        document.getElementById('btn-view-secret').disabled = false;
+        updateViewButtonState();
+        break;
+      }
     }
   });
 

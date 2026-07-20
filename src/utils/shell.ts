@@ -172,6 +172,61 @@ export async function execKubectl(
 }
 
 /**
+ * Lists all namespace names in the cluster
+ * @param token Cancellation token
+ * @returns Array of namespace names (empty array if none found)
+ */
+export async function listNamespaces(token: vscode.CancellationToken): Promise<string[]> {
+    const result = await execWithCancellation(
+        'kubectl',
+        ['get', 'ns', '-o', "jsonpath={.items[*].metadata.name}"],
+        {},
+        token
+    );
+    return result.stdout.trim().length > 0 ? result.stdout.trim().split(/\s+/) : [];
+}
+
+/**
+ * Lists all secret names in a namespace
+ * @param namespace Namespace to list secrets from
+ * @param token Cancellation token
+ * @returns Array of secret names (empty array if none found)
+ */
+export async function listSecrets(
+    namespace: string,
+    token: vscode.CancellationToken
+): Promise<string[]> {
+    const result = await execWithCancellation(
+        'kubectl',
+        ['get', 'secrets', '-n', namespace, '-o', "jsonpath={.items[*].metadata.name}"],
+        {},
+        token
+    );
+    return result.stdout.trim().length > 0 ? result.stdout.trim().split(/\s+/) : [];
+}
+
+/**
+ * Fetches a secret from the cluster as YAML text (without writing to a file)
+ * @param namespace Namespace of the secret
+ * @param name Secret name
+ * @param token Cancellation token
+ * @returns Raw YAML content of the secret
+ */
+export async function getSecretYaml(
+    namespace: string,
+    name: string,
+    token: vscode.CancellationToken
+): Promise<string> {
+    const result = await execWithCancellation(
+        'kubectl',
+        ['get', 'secret', name, '-n', namespace, '-o', 'yaml'],
+        {},
+        token
+    );
+    return result.stdout;
+}
+
+/**
  * Validates that a binary is installed and accessible
  * @param binaryPath Path to binary
  * @returns true if binary is accessible

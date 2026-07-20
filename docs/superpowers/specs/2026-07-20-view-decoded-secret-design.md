@@ -12,6 +12,14 @@ first.
 Panel-only. No new command-palette command, no new `contributes.commands`
 entry in `package.json`.
 
+## Implementation Note (post-review addendum)
+
+Namespace and secret name lists returned by `listNamespaces`/`listSecrets` are
+sorted alphabetically (`localeCompare`) before being sent to the webview, so
+the native `<select>` type-to-jump behavior lands on the right entry when the
+user types a letter. Sorting happens server-side in `panelProvider.ts`, not in
+`utils/shell.ts`, since kubectl's own output order isn't guaranteed.
+
 ## UI
 
 New third tab in `KubesealPanelProvider`, alongside existing **Tools** and
