@@ -1,3 +1,10 @@
+# [3.8.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.7.2...v3.8.0) (2026-07-21)
+
+
+### Features
+
+* panel progress bar ([#54](https://github.com/ops4life/kubeseal-vscode/issues/54)) ([89e3a89](https://github.com/ops4life/kubeseal-vscode/commit/89e3a89579d2afd982f77773fc93d6872950d5d9))
+
 ## [3.7.2](https://github.com/ops4life/kubeseal-vscode/compare/v3.7.1...v3.7.2) (2026-07-21)
 
 
