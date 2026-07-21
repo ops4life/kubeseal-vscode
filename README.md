@@ -44,6 +44,9 @@
   - [📖 Usage](#-usage)
     - [Typical Workflow](#typical-workflow)
     - [🖥️ Sidebar Panel](#️-sidebar-panel)
+      - [1. Tools Tab](#1-tools-tab)
+      - [2. View Tab](#2-view-tab)
+      - [3. Settings Tab](#3-settings-tab)
     - [🔐 Encrypting Secrets](#-encrypting-secrets)
     - [🔓 Decrypting Secrets](#-decrypting-secrets)
     - [🔧 Managing Certificates](#-managing-certificates)
@@ -85,7 +88,7 @@ For the best Kubernetes development experience, we recommend installing:
 
 - **🔐 Encrypt Secrets**: Right-click on YAML files containing Kubernetes secrets to encrypt them using kubeseal
 - **🔓 Decrypt Secrets**: Retrieve the original content of sealed secrets from your Kubernetes cluster
-- **📝 Base64 Encoding/Decoding**: Encode and decode base64 values using the system `base64` binary — handles Unicode, emoji, special characters, multiline values, TLS certs, and `stringData` promotion
+- **📝 Base64 Encoding/Decoding**: Encode and decode base64 values using Node's built-in `Buffer` (no external `base64` binary needed — works identically on Windows, macOS, Linux) — handles Unicode, emoji, special characters, multiline values, TLS certs, and `stringData` promotion
 - **🖥️ Sidebar Panel**: A modern, interactive sidebar containing all utilities in one place. Quick-encode/decode text, check certificate status, run encryption/decryption on the active editor, and manage certificates directly.
 - **📂 Certificate Folder Management**: Configure a folder containing multiple kubeseal certificates and easily switch between them
 - **🔄 Active Certificate Selection**: Click on the status bar to select which certificate to use for encryption
@@ -228,7 +231,7 @@ Here's a typical workflow for managing secrets with this extension:
 
 ### 🖥️ Sidebar Panel
 
-The extension features a modern, Material Design-inspired sidebar panel accessible via the Activity Bar (Kubeseal icon). It is divided into two tabs:
+The extension features a modern, Material Design-inspired sidebar panel accessible via the Activity Bar (Kubeseal icon). It is divided into three tabs, and any async operation (base64 encode/decode, namespace/secret listing, view secret, reload certs, encrypt/decrypt file) shows a thin progress bar under the tab nav and disables the triggering button until it completes, to prevent duplicate calls.
 
 #### 1. Tools Tab
 * **Base64 Converter**: Paste any text to quickly encode or decode without modifying your file, with a one-click copy button.
@@ -239,7 +242,10 @@ The extension features a modern, Material Design-inspired sidebar panel accessib
     * 🔴 **Red** — no certificate selected, or certificate has expired (e.g. `⚠ Expired on Mar 15, 2026`)
   * **Active Editor Controls**: Quick **Encrypt** and **Decrypt** buttons that operate on the currently open YAML editor in VS Code.
 
-#### 2. Settings Tab
+#### 2. View Tab
+* **Decode Secret from Cluster**: Pick a namespace and secret name from live dropdowns (populated via `kubectl get ns` / `kubectl get secrets`), then view the decoded values. The result is written to a temp file (not the workspace) and opened in the editor.
+
+#### 3. Settings Tab
 * **Certs Folder**: Click the browse button to set your certificate store directory.
 * **Active Certificate**: A dropdown list to easily switch between your certificates (`.pem`, `.crt`, or `.cert` files) in the configured folder.
 
