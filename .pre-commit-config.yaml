@@ -29,3 +29,10 @@ repos:
         language: system
         files: '(src/commands/base64\.ts|src/utils/shell\.ts|src/utils/validation\.ts|src/utils/yaml\.ts|tests/.*\.yaml|tests/run-tests\.mjs)$'
         pass_filenames: false
+
+    -   id: npm-audit
+        name: npm audit (production dependencies)
+        entry: bash -c 'npm audit --omit=dev --audit-level moderate'
+        language: system
+        files: '^package(-lock)?\.json$'
+        pass_filenames: false
