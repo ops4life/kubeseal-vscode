@@ -133,6 +133,11 @@ src/
    - The decoded file is opened directly in the editor for viewing
    - No new command-palette command or `contributes.commands` entry — this flow is panel-only
 
+8. **Global Progress Bar** (`ui/panelProvider.ts`, webview script):
+   - A thin indeterminate bar (`#global-progress`) sits under the tab nav and shows via CSS `.active` class while any panel-triggered async op is in flight — base64 encode/decode, namespace/secret listing, view secret, reload certs, encrypt/decrypt file
+   - Tracked with a `busyCount` ref-count (`beginBusy()`/`endBusy()`) so overlapping operations don't hide the bar early
+   - The triggering button is disabled for the duration (`showProgress(btn)`/`hideProgress(btn)`) to prevent duplicate calls; re-enabled once the extension host replies (`actionDone` message for encrypt/decrypt, or the relevant state/result message for others)
+
 ### Configuration Settings
 
 ```typescript
