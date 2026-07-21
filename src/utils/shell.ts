@@ -270,101 +270,39 @@ export async function validateBinaryInstalled(binaryPath: string): Promise<boole
     }
 }
 
+// Strict RFC 4648 base64 validator — mirrors what `base64 -d` rejects.
+// Used so decode failures (needed by the roundtrip "is this already
+// base64?" check) behave identically on every platform.
+const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
 /**
- * Encodes a raw string value using the system `base64` terminal command.
- * Produces output identical to: printf '%s' "value" | base64
- * Compatible with macOS and Linux.
+ * Encodes a raw string value to base64 using Node's built-in Buffer, matching
+ * the output of `printf '%s' "value" | base64` (no line wrapping).
+ * Pure Node implementation — works identically on Windows, macOS, and Linux
+ * without depending on a `base64` binary being present in PATH.
  * @param value Plain text value to encode
  * @returns Base64 encoded string (no newlines)
  */
 export async function encodeWithBase64(value: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const child = spawn('base64', [], {
-            stdio: ['pipe', 'pipe', 'pipe'],
-        });
-
-        let stdout = '';
-        let stderr = '';
-
-        child.stdout?.on('data', (data) => {
-            stdout += data.toString();
-        });
-
-        child.stderr?.on('data', (data) => {
-            stderr += data.toString();
-        });
-
-        child.on('error', (error) => {
-            reject(new Error(`base64 encode failed: ${error.message}`));
-        });
-
-        child.on('close', (code) => {
-            if (code === 0) {
-                // Strip all newlines — some platforms wrap at 76 chars
-                resolve(stdout.replace(/\n/g, ''));
-            } else {
-                reject(new Error(`base64 encode failed (exit ${code}): ${stderr || stdout}`));
-            }
-        });
-
-        child.stdin?.write(value, 'utf8');
-        child.stdin?.end();
-    });
+    return Buffer.from(value, 'utf8').toString('base64');
 }
 
 /**
- * Decodes a base64-encoded string using the system `base64` terminal command.
- * Equivalent to: echo "encoded" | base64 -d
- * Compatible with macOS (10.13+) and Linux.
+ * Decodes a base64-encoded string using Node's built-in Buffer, equivalent to
+ * `echo "encoded" | base64 -d`. Pure Node implementation — works identically
+ * on Windows, macOS, and Linux without depending on a `base64` binary.
  *
- * stdout is collected as raw Buffer chunks and joined once at the end to avoid
- * corrupting multi-byte UTF-8 sequences (emoji, accented chars, CJK, etc.) that
- * can span chunk boundaries when decoded incrementally via toString().
+ * The whole buffer is decoded at once (never streamed) so multi-byte UTF-8
+ * sequences (emoji, accented chars, CJK, etc.) never get split across chunks.
  *
- * @param encoded Base64 encoded string (single-line or line-wrapped)
+ * @param encoded Base64 encoded string (whitespace-free — callers strip
+ *   line-wrapping before calling this)
  * @returns Decoded string
  * @throws Error if the input is not valid base64
  */
 export async function decodeWithBase64(encoded: string): Promise<string> {
-    // macOS uses -D (legacy) but also supports -d (10.13+); Linux uses -d
-    // Use -d universally — works on all supported platforms
-    const args = process.platform === 'darwin' ? ['-D'] : ['-d'];
-
-    return new Promise((resolve, reject) => {
-        const child = spawn('base64', args, {
-            stdio: ['pipe', 'pipe', 'pipe'],
-        });
-
-        // Collect as raw Buffers — joining once preserves all byte sequences
-        const stdoutChunks: Buffer[] = [];
-        let stderr = '';
-
-        child.stdout?.on('data', (data: Buffer) => {
-            stdoutChunks.push(Buffer.isBuffer(data) ? data : Buffer.from(data));
-        });
-
-        child.stderr?.on('data', (data) => {
-            stderr += data.toString();
-        });
-
-        child.on('error', (error) => {
-            reject(new Error(`base64 decode failed: ${error.message}`));
-        });
-
-        child.on('close', (code) => {
-            if (code === 0) {
-                // Decode the full buffer at once — safe for all Unicode + binary
-                resolve(Buffer.concat(stdoutChunks).toString('utf8'));
-            } else {
-                reject(
-                    new Error(
-                        `base64 decode failed (exit ${code}): ${stderr || 'invalid base64 input'}`
-                    )
-                );
-            }
-        });
-
-        child.stdin?.write(encoded, 'utf8');
-        child.stdin?.end();
-    });
+    if (!BASE64_PATTERN.test(encoded)) {
+        throw new Error('base64 decode failed: invalid base64 input');
+    }
+    return Buffer.from(encoded, 'base64').toString('utf8');
 }

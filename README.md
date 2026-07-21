@@ -201,6 +201,8 @@ Watch how to use the Kubeseal VS Code extension in action:
 - For encryption: A kubeseal certificate folder containing certificate files (`.pem`, `.crt`, or `.cert`)
 - For decryption: Access to the Kubernetes cluster where the secret is deployed
 
+**Cross-platform:** Fully supported on Windows, macOS, and Linux. `kubeseal`/`kubectl` must be on PATH on all three; base64 encode/decode is handled internally by Node (no external `base64` binary needed, since Windows doesn't ship one).
+
 ## 🛠️ Setup
 
 1. Install the `kubeseal` binary from [sealed-secrets releases](https://github.com/bitnami-labs/sealed-secrets/releases)
