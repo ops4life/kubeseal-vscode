@@ -1,3 +1,10 @@
+## [3.7.2](https://github.com/ops4life/kubeseal-vscode/compare/v3.7.1...v3.7.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* cross-platform base64 encode/decode (Windows support) ([#52](https://github.com/ops4life/kubeseal-vscode/issues/52)) ([bfcd5d9](https://github.com/ops4life/kubeseal-vscode/commit/bfcd5d929c54d621f5bf7ab17adf5660500af0d2))
+
 ## [3.7.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.7.0...v3.7.1) (2026-07-20)
 
 
