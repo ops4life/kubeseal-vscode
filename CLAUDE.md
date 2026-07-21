@@ -118,9 +118,9 @@ src/
    - This means decryption requires cluster access and that the SealedSecret has been deployed
 
 6. **Base64 Handling** (`commands/base64.ts`, `utils/shell.ts`):
-   - Uses the **system `base64` terminal binary** (same tool as `kubectl` / `openssl`) via `spawn()` — not Node.js `Buffer` heuristics
-   - `encodeWithBase64(value)` in `utils/shell.ts`: pipes raw UTF-8 bytes through `base64` stdin → stdout, strips wrapping newlines
-   - `decodeWithBase64(encoded)` in `utils/shell.ts`: pipes through `base64 -D` (macOS) / `base64 -d` (Linux), collects stdout as raw `Buffer` chunks joined once to preserve multi-byte UTF-8 sequences (emoji, CJK, Arabic, etc.)
+   - Uses Node's built-in **`Buffer`** for encode/decode — not an external `base64` binary, so behavior is identical on Windows, macOS, and Linux (no dependency on a `base64` CLI existing in PATH, which Windows lacks natively)
+   - `encodeWithBase64(value)` in `utils/shell.ts`: `Buffer.from(value, 'utf8').toString('base64')`, no line wrapping
+   - `decodeWithBase64(encoded)` in `utils/shell.ts`: validates input against a strict RFC 4648 base64 regex (throws on invalid input, matching what `base64 -d` would reject), then `Buffer.from(encoded, 'base64').toString('utf8')` — decoded in one shot to preserve multi-byte UTF-8 sequences (emoji, CJK, Arabic, etc.)
    - **Encode strategy**: roundtrip check (`decode → re-encode → compare`) to detect already-encoded values; normalises whitespace before comparison to handle line-wrapped base64 (TLS certs, SSH keys). Encodes `stringData` values and promotes them to `data`.
    - **Decode strategy**: decodes ALL values in `.data` unconditionally — K8s Secret spec guarantees every `.data` value is base64. No heuristic detection needed.
    - Binary detection post-decode (null bytes / control chars) keeps certs/keys as base64 in the YAML

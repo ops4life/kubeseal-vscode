@@ -1,9 +1,11 @@
 /**
  * Base64 encoding/decoding commands for Kubernetes secrets.
  *
- * Uses the system `base64` terminal command (same binary as kubectl/openssl)
- * instead of Node.js Buffer heuristics, which were unreliable for short values
- * like "admin", "true", or single-word passwords.
+ * Uses a strict RFC 4648 roundtrip check (decode → re-encode → compare) built
+ * on Node's Buffer, not a "does this look like base64" guess — guessing was
+ * unreliable for short values like "admin", "true", or single-word passwords.
+ * Pure Node (no external `base64` binary) so behavior is identical on
+ * Windows, macOS, and Linux.
  *
  * Encode strategy:
  *   - For `.data` keys: use a roundtrip check (decode → re-encode) to detect
@@ -32,8 +34,8 @@ import { KubernetesSecret } from '../types/kubernetes';
 /**
  * Returns true when `value` is already a valid base64-encoded string.
  *
- * Strategy: decode with the system base64 command, then re-encode the result
- * and compare byte-for-byte to the normalised original.
+ * Strategy: decode with Node's Buffer, then re-encode the result and compare
+ * byte-for-byte to the normalised original.
  *
  * We strip all whitespace (spaces, newlines, \r) before comparing because:
  *  - some tools (openssl, gpg) emit base64 wrapped at 76 chars per line
@@ -44,7 +46,7 @@ import { KubernetesSecret } from '../types/kubernetes';
  *  - Short plaintext values like "admin", "true" (decode fails → false)
  *  - Single-line base64 like "dGVzdA=="
  *  - Multi-line / wrapped base64 (TLS certs, SSH keys stored in secrets)
- *  - Unicode passwords / UTF-8 special chars (passed as raw bytes via stdin)
+ *  - Unicode passwords / UTF-8 special chars (encoded as raw UTF-8 bytes)
  */
 async function isAlreadyBase64Encoded(value: string): Promise<boolean> {
     try {
@@ -178,7 +180,7 @@ export async function encodeBase64Values(
                     const alreadyEncoded = await isAlreadyBase64Encoded(value);
                     if (!alreadyEncoded) {
                         try {
-                            // Write raw UTF-8 bytes to stdin — handles all Unicode,
+                            // Encodes raw UTF-8 bytes — handles all Unicode,
                             // newlines, tabs, emoji, non-ASCII passwords, etc.
                             secret.data[key] = await encodeWithBase64(value);
                             encodedCount++;
