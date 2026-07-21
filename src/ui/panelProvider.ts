@@ -100,10 +100,12 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
             }
             case 'encryptFile': {
                 await vscode.commands.executeCommand('kubeseal.encrypt');
+                webview.postMessage({ command: 'actionDone', action: 'encrypt' });
                 break;
             }
             case 'decryptFile': {
                 await vscode.commands.executeCommand('kubeseal.decrypt');
+                webview.postMessage({ command: 'actionDone', action: 'decrypt' });
                 break;
             }
             case 'reloadCerts': {
@@ -307,6 +309,30 @@ body {
   z-index: 10;
   background: var(--vscode-sideBar-background);
   border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+/* ── Global progress bar ── */
+.md-progress {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  height: 2px;
+  overflow: hidden;
+  background: transparent;
+  display: none;
+}
+.md-progress.active { display: block; }
+.md-progress::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: var(--vscode-progressBar-background, var(--vscode-focusBorder));
+  animation: mdProgressSlide 1.1s ease-in-out infinite;
+}
+@keyframes mdProgressSlide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
 }
 .tab {
   position: relative;
@@ -737,6 +763,7 @@ textarea.md-input.readonly {
     Settings
   </div>
 </nav>
+<div class="md-progress" id="global-progress"></div>
 
 <!-- ── Tools Tab: Base64 + Actions combined ── -->
 <div id="tab-tools" class="tab-content active" role="tabpanel">
@@ -922,6 +949,25 @@ textarea.md-input.readonly {
 <script nonce="${nonce}">
   const vscode = acquireVsCodeApi();
 
+  // ── Global progress bar ──────────────────────────────────────
+  let busyCount = 0;
+  function beginBusy() {
+    busyCount++;
+    document.getElementById('global-progress').classList.add('active');
+  }
+  function endBusy() {
+    busyCount = Math.max(0, busyCount - 1);
+    if (busyCount === 0) document.getElementById('global-progress').classList.remove('active');
+  }
+  function showProgress(btn) {
+    beginBusy();
+    if (btn) btn.disabled = true;
+  }
+  function hideProgress(btn) {
+    endBusy();
+    if (btn) btn.disabled = false;
+  }
+
   // ── Tab switching ─────────────────────────────────────────────
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -956,6 +1002,7 @@ textarea.md-input.readonly {
     const value = raw.trim();
     clearError();
     document.getElementById('b64-warn').classList.remove('visible');
+    showProgress(document.getElementById('btn-encode'));
     vscode.postMessage({ command: 'encode', value });
   });
 
@@ -965,6 +1012,7 @@ textarea.md-input.readonly {
     const value = raw.trim();
     clearError();
     document.getElementById('b64-warn').classList.remove('visible');
+    showProgress(document.getElementById('btn-decode'));
     vscode.postMessage({ command: 'decode', value });
   });
 
@@ -989,6 +1037,8 @@ textarea.md-input.readonly {
     if (value) vscode.postMessage({ command: 'setActiveCert', value });
   });
 
+  let reloadBusy = false;
+
   function triggerReload(btnId) {
     const btn = document.getElementById(btnId);
     if (!btn || btn.disabled) return;
@@ -1004,6 +1054,8 @@ textarea.md-input.readonly {
       }
     });
 
+    reloadBusy = true;
+    beginBusy();
     vscode.postMessage({ command: 'reloadCerts' });
 
     // Fallback safety timeout
@@ -1079,6 +1131,7 @@ textarea.md-input.readonly {
     updateViewButtonState();
     const namespace = e.target.value;
     if (namespace) {
+      beginBusy();
       vscode.postMessage({ command: 'listSecrets', namespace });
     } else {
       populateSelect('view-secret', [], 'No secrets found', '— select —');
@@ -1094,6 +1147,7 @@ textarea.md-input.readonly {
     clearViewError();
     document.getElementById('view-namespace').innerHTML = '<option value="">Loading namespaces…</option>';
     document.getElementById('view-namespace').disabled = true;
+    showProgress(document.getElementById('btn-reload-namespaces'));
     vscode.postMessage({ command: 'listNamespaces' });
   });
 
@@ -1102,8 +1156,7 @@ textarea.md-input.readonly {
     const name = document.getElementById('view-secret').value;
     if (!namespace || !name) return;
     clearViewError();
-    const btn = document.getElementById('btn-view-secret');
-    btn.disabled = true;
+    showProgress(document.getElementById('btn-view-secret'));
     vscode.postMessage({ command: 'viewSecret', namespace, name });
   });
 
@@ -1113,6 +1166,7 @@ textarea.md-input.readonly {
       tab.addEventListener('click', () => {
         if (!viewNamespacesLoaded) {
           viewNamespacesLoaded = true;
+          beginBusy();
           vscode.postMessage({ command: 'listNamespaces' });
         }
       });
@@ -1120,11 +1174,21 @@ textarea.md-input.readonly {
   });
 
   // ── Actions ───────────────────────────────────────────────────
+  let fileActionBusy = false;
+
   document.getElementById('btn-encrypt').addEventListener('click', () => {
+    fileActionBusy = true;
+    document.getElementById('btn-encrypt').disabled = true;
+    document.getElementById('btn-decrypt').disabled = true;
+    beginBusy();
     vscode.postMessage({ command: 'encryptFile' });
   });
 
   document.getElementById('btn-decrypt').addEventListener('click', () => {
+    fileActionBusy = true;
+    document.getElementById('btn-encrypt').disabled = true;
+    document.getElementById('btn-decrypt').disabled = true;
+    beginBusy();
     vscode.postMessage({ command: 'decryptFile' });
   });
 
@@ -1152,6 +1216,12 @@ textarea.md-input.readonly {
     const btn = document.getElementById('btn-copy');
     btn.textContent = 'Copy';
     btn.classList.remove('copied');
+  }
+
+  function hideB64Progress() {
+    document.getElementById('btn-encode').disabled = false;
+    document.getElementById('btn-decode').disabled = false;
+    endBusy();
   }
 
   function updateState(state) {
@@ -1224,8 +1294,10 @@ textarea.md-input.readonly {
     const encBtn = document.getElementById('btn-encrypt');
     const decBtn = document.getElementById('btn-decrypt');
     const hint   = document.getElementById('yaml-hint');
-    encBtn.disabled = !state.activeEditorIsYaml;
-    decBtn.disabled = !state.activeEditorIsYaml;
+    if (!fileActionBusy) {
+      encBtn.disabled = !state.activeEditorIsYaml;
+      decBtn.disabled = !state.activeEditorIsYaml;
+    }
     hint.style.display = state.activeEditorIsYaml ? 'none' : '';
 
     // Stop spin animation & re-enable buttons
@@ -1236,34 +1308,50 @@ textarea.md-input.readonly {
     const reloadSettingsBtn = document.getElementById('btn-reload-settings');
     if (reloadFolderBtn) reloadFolderBtn.disabled = false;
     if (reloadSettingsBtn) reloadSettingsBtn.disabled = false;
+
+    if (reloadBusy) {
+      reloadBusy = false;
+      endBusy();
+    }
   }
 
   window.addEventListener('message', event => {
     const msg = event.data;
     switch (msg.command) {
-      case 'encodeResult': showOutput(msg.value); break;
-      case 'decodeResult': showOutput(msg.value); break;
-      case 'error':        showError(msg.message, msg.operation); break;
+      case 'encodeResult': showOutput(msg.value); hideB64Progress(); break;
+      case 'decodeResult': showOutput(msg.value); hideB64Progress(); break;
+      case 'error':        showError(msg.message, msg.operation); hideB64Progress(); break;
       case 'stateUpdate':  updateState(msg); break;
       case 'namespacesResult': {
         populateSelect('view-namespace', msg.namespaces, 'No namespaces found', '— select —');
         populateSelect('view-secret', [], 'Select a namespace first', '— select —');
         updateViewButtonState();
+        document.getElementById('btn-reload-namespaces').disabled = false;
+        endBusy();
         break;
       }
       case 'secretsResult': {
         populateSelect('view-secret', msg.secrets, 'No secrets found', '— select —');
         updateViewButtonState();
+        endBusy();
         break;
       }
       case 'viewError': {
         showViewError(msg.message);
         document.getElementById('btn-view-secret').disabled = false;
+        document.getElementById('btn-reload-namespaces').disabled = false;
+        endBusy();
         break;
       }
       case 'viewSecretDone': {
-        document.getElementById('btn-view-secret').disabled = false;
+        hideProgress(document.getElementById('btn-view-secret'));
         updateViewButtonState();
+        break;
+      }
+      case 'actionDone': {
+        fileActionBusy = false;
+        endBusy();
+        vscode.postMessage({ command: 'getState' });
         break;
       }
     }

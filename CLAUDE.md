@@ -215,8 +215,7 @@ git push -u origin feat/new-feature
 ```
 
 > [!NOTE]
-> Always build a new VSIX package with `npm run package` after implementing changes to verify the package is bundled cleanly and correctly excludes reference directories (like `vscode-kubernetes-tools`).
-> This is a required step immediately after finishing any implementation, before declaring the task done — not just before publishing.
+> See `.claude/rules/build-vsix.md` — VSIX packaging is required after every implementation, before declaring the task done.
 
 This ensures:
 - All changes go through CI checks
