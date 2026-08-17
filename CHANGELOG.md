@@ -1,3 +1,10 @@
+# [3.9.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.8.1...v3.9.0) (2026-08-17)
+
+
+### Features
+
+* key-list bulk base64 encode in panel Tools tab ([#71](https://github.com/ops4life/kubeseal-vscode/issues/71)) ([e68dbdb](https://github.com/ops4life/kubeseal-vscode/commit/e68dbdbb81ed7db52ced6e970eeaf0e13b06f902))
+
 ## [3.8.1](https://github.com/ops4life/kubeseal-vscode/compare/v3.8.0...v3.8.1) (2026-07-21)
 
 # [3.8.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.7.2...v3.8.0) (2026-07-21)
