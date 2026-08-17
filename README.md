@@ -235,6 +235,8 @@ The extension features a modern, Material Design-inspired sidebar panel accessib
 
 #### 1. Tools Tab
 * **Base64 Converter**: Paste any text to quickly encode or decode without modifying your file, with a one-click copy button.
+  * **Single value** mode: encode or decode one value at a time.
+  * **Key list** mode: paste a multi-line list of secrets (`key: value`, `key=value`, or `key value` per line — separators can be mixed) and encode all of them at once. Each line is parsed independently; malformed lines (no key found) are skipped with a warning instead of blocking the rest. Output is rendered as `key: <base64value>` lines, ready to paste into a Secret's `data:` block. Decode remains single-value only.
 * **Actions**:
   * **Certificate Status**: Real-time status display of your active certificate with colour-coded expiry information:
     * 🟢 **Green** — certificate is valid, shows days remaining (e.g. `✓ Valid until Jun 30, 2027 (380d)`)
@@ -424,9 +426,10 @@ cd kubeseal-vscode
 npm install
 pre-commit install        # install pre-commit hooks
 npm run test:base64       # run the base64 test suite
+npm run test:panel        # run the panel webview script regression guard
 ```
 
-Pre-commit hooks enforce TypeScript type checking and the base64 test suite on every commit.
+Pre-commit hooks enforce TypeScript type checking, the base64 test suite, and the panel webview script regression guard on every commit.
 See [Contributing Guide](docs/guides/contributing.md) for full details.
 
 ## 📄 License

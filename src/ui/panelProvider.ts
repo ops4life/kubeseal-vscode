@@ -1051,7 +1051,7 @@ textarea.md-input.readonly {
     const input = document.getElementById('b64-input');
     const decodeBtn = document.getElementById('btn-decode');
     if (mode === 'list') {
-      input.placeholder = 'key1: value1\nkey2=value2\n...';
+      input.placeholder = 'key1: value1\\nkey2=value2\\nkey3 value3\\n...';
       decodeBtn.disabled = true;
       decodeBtn.title = 'Decode is only available for a single value';
     } else {
@@ -1066,18 +1066,20 @@ textarea.md-input.readonly {
   document.getElementById('b64-mode-single').addEventListener('click', () => setB64Mode('single'));
   document.getElementById('b64-mode-list').addEventListener('click', () => setB64Mode('list'));
 
-  // Parses "key: value" / "key=value" lines, splitting on whichever of ':' or
-  // '=' occurs first so both YAML- and .env-style lists are supported.
+  // Parses "key: value", "key=value", and "key value" lines, splitting on
+  // whichever of ':', '=', or whitespace occurs first so YAML-, .env-, and
+  // space-separated lists are all supported.
   function parseKeyList(raw) {
     const entries = [];
     const skipped = [];
-    raw.split('\n').forEach((line, i) => {
-      if (!line.trim()) return;
-      const colonIdx = line.indexOf(':');
-      const eqIdx = line.indexOf('=');
-      const idx = colonIdx === -1 ? eqIdx : eqIdx === -1 ? colonIdx : Math.min(colonIdx, eqIdx);
-      const key = idx === -1 ? '' : line.slice(0, idx).trim();
-      const value = idx === -1 ? '' : line.slice(idx + 1).trim();
+    raw.split('\\n').forEach((line, i) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      const candidates = [trimmed.indexOf(':'), trimmed.indexOf('='), trimmed.search(/\\s/)]
+        .filter((n) => n !== -1);
+      const idx = candidates.length ? Math.min(...candidates) : -1;
+      const key = idx === -1 ? '' : trimmed.slice(0, idx).trim();
+      const value = idx === -1 ? '' : trimmed.slice(idx + 1).trim();
       if (idx === -1 || !key) {
         skipped.push(i + 1);
       } else {
@@ -1439,7 +1441,7 @@ textarea.md-input.readonly {
       case 'encodeResult': showOutput(msg.value); hideB64Progress(); break;
       case 'decodeResult': showOutput(msg.value); hideB64Progress(); break;
       case 'encodeListResult': {
-        const text = msg.entries.map(e => e.key + ': ' + e.encoded).join('\n');
+        const text = msg.entries.map(e => e.key + ': ' + e.encoded).join('\\n');
         showOutput(text);
         hideB64Progress();
         break;
