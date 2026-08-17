@@ -24,6 +24,10 @@ npm run watch
 # Run the base64 encode/decode test suite (standalone, no VS Code runtime needed)
 npm run test:base64
 
+# Run the panel webview script regression guard (catches template-literal
+# escaping bugs that break the whole panel — see architecture note below)
+npm run test:panel
+
 # Run full VS Code integration tests
 npm test
 
@@ -138,6 +142,11 @@ src/
    - Tracked with a `busyCount` ref-count (`beginBusy()`/`endBusy()`) so overlapping operations don't hide the bar early
    - The triggering button is disabled for the duration (`showProgress(btn)`/`hideProgress(btn)`) to prevent duplicate calls; re-enabled once the extension host replies (`actionDone` message for encrypt/decrypt, or the relevant state/result message for others)
 
+9. **Webview Script Escaping Hazard** (`ui/panelProvider.ts`, `_getHtml()`):
+   - The entire panel UI — HTML, CSS, and the client-side JS in `<script>` — is built as **one TypeScript template literal**. A backslash-escape meant for the *browser's* JS (e.g. `'a\nb'`, `/\s/`) is instead interpreted by TypeScript while building the outer string, silently splicing a real newline/character into the emitted script and breaking it with a syntax error VS Code never surfaces anywhere visible — the result is every button/tab in the panel going dead with no error message.
+   - Any backslash-escape sequence intended to survive into the emitted browser JS/regex **must be double-escaped** in the TS source: write `\\n`, `\\s`, `\\d`, etc., not `\n`, `\s`, `\d`.
+   - `npm run test:panel` (`tests/panel-webview-test.mjs`) guards against this: it renders the real generated HTML/script via the compiled extension code and parses the inline `<script>` block with Node's `vm` module, failing if it's not valid JS. Run it after any edit inside `_getHtml()`.
+
 ### Configuration Settings
 
 ```typescript
@@ -221,6 +230,9 @@ git push -u origin feat/new-feature
 
 > [!NOTE]
 > See `.claude/rules/build-vsix.md` — VSIX packaging is required after every implementation, before declaring the task done.
+
+> [!NOTE]
+> See `.claude/rules/webview-template-escaping.md` — run `npm run test:panel` after any edit inside `ui/panelProvider.ts`'s `_getHtml()`.
 
 This ensures:
 - All changes go through CI checks

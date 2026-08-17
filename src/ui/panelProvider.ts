@@ -52,10 +52,33 @@ export class KubesealPanelProvider implements vscode.WebviewViewProvider {
     }
 
     private async _handleMessage(
-        message: { command: string; value?: string; namespace?: string; name?: string },
+        message: {
+            command: string;
+            value?: string;
+            namespace?: string;
+            name?: string;
+            entries?: { key: string; value: string }[];
+        },
         webview: vscode.Webview
     ): Promise<void> {
         switch (message.command) {
+            case 'encodeList': {
+                if (!message.entries || message.entries.length === 0) {
+                    return;
+                }
+                try {
+                    const entries = await Promise.all(
+                        message.entries.map(async (entry) => ({
+                            key: entry.key,
+                            encoded: await encodeWithBase64(entry.value),
+                        }))
+                    );
+                    webview.postMessage({ command: 'encodeListResult', entries });
+                } catch (e) {
+                    webview.postMessage({ command: 'error', message: String(e), operation: 'encode' });
+                }
+                break;
+            }
             case 'encode': {
                 if (!message.value) {
                     return;
@@ -643,6 +666,35 @@ textarea.md-input.readonly {
 }
 .md-error.visible { display: flex; }
 
+/* ── MD Segmented Toggle ── */
+.md-seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  margin-bottom: 8px;
+  background: rgba(128,128,128,.08);
+  border-radius: var(--md-radius-pill);
+}
+.md-seg-btn {
+  flex: 1;
+  padding: 5px 8px;
+  border: none;
+  border-radius: var(--md-radius-pill);
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--md-transition), color var(--md-transition);
+}
+.md-seg-btn:hover { color: var(--vscode-foreground); }
+.md-seg-btn.active {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
 /* ── MD Warn banner ── */
 .md-warn {
   display: none;
@@ -774,6 +826,10 @@ textarea.md-input.readonly {
   </div>
 
   <div class="md-card">
+    <div class="md-seg" role="tablist" aria-label="Input mode">
+      <button class="md-seg-btn active" id="b64-mode-single" data-mode="single">Single value</button>
+      <button class="md-seg-btn" id="b64-mode-list" data-mode="list">Key list</button>
+    </div>
     <div class="md-label">
       <span class="md-icon">${icon.edit}</span> Input
     </div>
@@ -986,10 +1042,57 @@ textarea.md-input.readonly {
   });
 
   // ── Base64 ────────────────────────────────────────────────────
+  let b64Mode = 'single';
+
+  function setB64Mode(mode) {
+    b64Mode = mode;
+    document.getElementById('b64-mode-single').classList.toggle('active', mode === 'single');
+    document.getElementById('b64-mode-list').classList.toggle('active', mode === 'list');
+    const input = document.getElementById('b64-input');
+    const decodeBtn = document.getElementById('btn-decode');
+    if (mode === 'list') {
+      input.placeholder = 'key1: value1\\nkey2=value2\\nkey3 value3\\n...';
+      decodeBtn.disabled = true;
+      decodeBtn.title = 'Decode is only available for a single value';
+    } else {
+      input.placeholder = 'Paste a value to encode or decode…';
+      decodeBtn.disabled = false;
+      decodeBtn.title = '';
+    }
+    clearError();
+    document.getElementById('b64-output-section').style.display = 'none';
+  }
+
+  document.getElementById('b64-mode-single').addEventListener('click', () => setB64Mode('single'));
+  document.getElementById('b64-mode-list').addEventListener('click', () => setB64Mode('list'));
+
+  // Parses "key: value", "key=value", and "key value" lines, splitting on
+  // whichever of ':', '=', or whitespace occurs first so YAML-, .env-, and
+  // space-separated lists are all supported.
+  function parseKeyList(raw) {
+    const entries = [];
+    const skipped = [];
+    raw.split('\\n').forEach((line, i) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      const candidates = [trimmed.indexOf(':'), trimmed.indexOf('='), trimmed.search(/\\s/)]
+        .filter((n) => n !== -1);
+      const idx = candidates.length ? Math.min(...candidates) : -1;
+      const key = idx === -1 ? '' : trimmed.slice(0, idx).trim();
+      const value = idx === -1 ? '' : trimmed.slice(idx + 1).trim();
+      if (idx === -1 || !key) {
+        skipped.push(i + 1);
+      } else {
+        entries.push({ key, value });
+      }
+    });
+    return { entries, skipped };
+  }
+
   document.getElementById('b64-input').addEventListener('input', () => {
     const raw = document.getElementById('b64-input').value;
     const warn = document.getElementById('b64-warn');
-    if (raw && raw !== raw.trim()) {
+    if (b64Mode === 'single' && raw && raw !== raw.trim()) {
       warn.classList.add('visible');
     } else {
       warn.classList.remove('visible');
@@ -999,14 +1102,31 @@ textarea.md-input.readonly {
   document.getElementById('btn-encode').addEventListener('click', () => {
     const raw = document.getElementById('b64-input').value;
     if (!raw) return;
-    const value = raw.trim();
     clearError();
     document.getElementById('b64-warn').classList.remove('visible');
+
+    if (b64Mode === 'list') {
+      const { entries, skipped } = parseKeyList(raw);
+      if (skipped.length) {
+        const label = skipped.length > 1 ? 'Lines' : 'Line';
+        showError(
+          label + ' ' + skipped.join(', ') + ' skipped: no "key: value" or "key=value" found.',
+          'encode'
+        );
+      }
+      if (!entries.length) return;
+      showProgress(document.getElementById('btn-encode'));
+      vscode.postMessage({ command: 'encodeList', entries });
+      return;
+    }
+
+    const value = raw.trim();
     showProgress(document.getElementById('btn-encode'));
     vscode.postMessage({ command: 'encode', value });
   });
 
   document.getElementById('btn-decode').addEventListener('click', () => {
+    if (b64Mode === 'list') return;
     const raw = document.getElementById('b64-input').value;
     if (!raw) return;
     const value = raw.trim();
@@ -1220,7 +1340,7 @@ textarea.md-input.readonly {
 
   function hideB64Progress() {
     document.getElementById('btn-encode').disabled = false;
-    document.getElementById('btn-decode').disabled = false;
+    document.getElementById('btn-decode').disabled = b64Mode === 'list';
     endBusy();
   }
 
@@ -1320,6 +1440,12 @@ textarea.md-input.readonly {
     switch (msg.command) {
       case 'encodeResult': showOutput(msg.value); hideB64Progress(); break;
       case 'decodeResult': showOutput(msg.value); hideB64Progress(); break;
+      case 'encodeListResult': {
+        const text = msg.entries.map(e => e.key + ': ' + e.encoded).join('\\n');
+        showOutput(text);
+        hideB64Progress();
+        break;
+      }
       case 'error':        showError(msg.message, msg.operation); hideB64Progress(); break;
       case 'stateUpdate':  updateState(msg); break;
       case 'namespacesResult': {
