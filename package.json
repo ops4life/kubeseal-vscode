@@ -143,6 +143,7 @@
         "format": "prettier --write \"src/**/*.ts\"",
         "format:check": "prettier --check \"src/**/*.ts\"",
         "package": "vsce package",
+        "package:demo": "vsce package -o kubeseal-vscode-$npm_package_version-demo.vsix",
         "clean": "rimraf out *.vsix"
     },
     "devDependencies": {
