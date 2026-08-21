@@ -1,3 +1,10 @@
+# [3.10.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.9.0...v3.10.0) (2026-08-21)
+
+
+### Features
+
+* auto-detect single value vs key-list in base64 panel ([#72](https://github.com/ops4life/kubeseal-vscode/issues/72)) ([cc4b06a](https://github.com/ops4life/kubeseal-vscode/commit/cc4b06a5b64b1d4650c9f3224f9983aa01b7d7d6))
+
 # [3.9.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.8.1...v3.9.0) (2026-08-17)
 
 
