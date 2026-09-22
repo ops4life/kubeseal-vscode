@@ -768,6 +768,9 @@ textarea.md-input.readonly {
 .md-status-chip.err  .md-status-sub { color: #f14c4c; }
 .md-status-chip.warn .md-status-sub { color: #e59800; }
 .md-status-chip.ok   .md-status-sub { color: #4ec94e; }
+.md-status-sub.err  { color: #f14c4c; }
+.md-status-sub.warn { color: #e59800; }
+.md-status-sub.ok   { color: #4ec94e; }
 
 /* ── MD Hint ── */
 .md-hint {
@@ -980,6 +983,17 @@ textarea.md-input.readonly {
         </button>
       </div>
       <div class="md-settings-desc">Certificate used to seal secrets.</div>
+    </div>
+    <div class="md-status-chip err" id="settings-status-badge">
+      <div class="md-dot-wrap">
+        <div class="md-dot red" id="settings-cert-dot"></div>
+        <div class="md-pulse"></div>
+      </div>
+      <div class="md-status-info">
+        <div class="md-status-super">Certificate</div>
+        <div class="md-status-label" id="settings-cert-label"></div>
+        <div class="md-status-sub" id="settings-cert-expiry-label" style="display:none"></div>
+      </div>
     </div>
   </div>
 
@@ -1329,6 +1343,52 @@ textarea.md-input.readonly {
     endBusy();
   }
 
+  function formatCertExpiry(expiry) {
+    if (!expiry) return null;
+    const expDate = new Date(expiry.notAfter);
+    const dateStr = expDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+    if (expiry.isExpired) {
+      return { severity: 'err', dotColor: 'red', text: '⚠ Expired on ' + dateStr };
+    } else if (expiry.isExpiringSoon) {
+      return {
+        severity: 'warn',
+        dotColor: 'amber',
+        text: '⚠ Expires in ' + expiry.daysLeft + ' day' + (expiry.daysLeft === 1 ? '' : 's') + ' (' + dateStr + ')',
+      };
+    }
+    return { severity: 'ok', dotColor: 'green', text: '✓ Valid until ' + dateStr + ' (' + expiry.daysLeft + 'd)' };
+  }
+
+  function applyCertStatus(badgeId, dotId, labelId, expiryId, state) {
+    const badge    = document.getElementById(badgeId);
+    const dot      = document.getElementById(dotId);
+    const label    = document.getElementById(labelId);
+    const expiryEl = document.getElementById(expiryId);
+
+    if (state.activeCertFile) {
+      label.textContent = state.activeCertFile;
+
+      const info = formatCertExpiry(state.certExpiry);
+      if (info) {
+        badge.className = 'md-status-chip ' + info.severity;
+        dot.className    = 'md-dot ' + info.dotColor;
+        expiryEl.style.display = '';
+        expiryEl.textContent = info.text;
+      } else {
+        // cert file exists but couldn't be parsed
+        badge.className = 'md-status-chip ok';
+        dot.className    = 'md-dot green';
+        expiryEl.style.display = 'none';
+      }
+    } else {
+      badge.className = 'md-status-chip err';
+      dot.className    = 'md-dot red';
+      label.textContent = 'No certificate configured';
+      expiryEl.style.display = 'none';
+    }
+  }
+
   function updateState(state) {
     // Settings tab
     document.getElementById('certs-folder').value = state.certsFolder || '';
@@ -1355,46 +1415,9 @@ textarea.md-input.readonly {
       if (!state.activeCertFile) sel.value = '';
     }
 
-    // Actions status chip
-    const badge      = document.getElementById('status-badge');
-    const dot        = document.getElementById('cert-dot');
-    const label      = document.getElementById('cert-label');
-    const expiryEl   = document.getElementById('cert-expiry-label');
-
-    if (state.activeCertFile) {
-      label.textContent = state.activeCertFile;
-
-      const expiry = state.certExpiry;
-      if (expiry) {
-        expiryEl.style.display = '';
-        const expDate = new Date(expiry.notAfter);
-        const dateStr = expDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-
-        if (expiry.isExpired) {
-          badge.className = 'md-status-chip err';
-          dot.className   = 'md-dot red';
-          expiryEl.textContent = '⚠ Expired on ' + dateStr;
-        } else if (expiry.isExpiringSoon) {
-          badge.className = 'md-status-chip warn';
-          dot.className   = 'md-dot amber';
-          expiryEl.textContent = '⚠ Expires in ' + expiry.daysLeft + ' day' + (expiry.daysLeft === 1 ? '' : 's') + ' (' + dateStr + ')';
-        } else {
-          badge.className = 'md-status-chip ok';
-          dot.className   = 'md-dot green';
-          expiryEl.textContent = '✓ Valid until ' + dateStr + ' (' + expiry.daysLeft + 'd)';
-        }
-      } else {
-        // cert file exists but couldn't be parsed
-        badge.className = 'md-status-chip ok';
-        dot.className   = 'md-dot green';
-        expiryEl.style.display = 'none';
-      }
-    } else {
-      badge.className = 'md-status-chip err';
-      dot.className   = 'md-dot red';
-      label.textContent = 'No certificate configured';
-      expiryEl.style.display = 'none';
-    }
+    // Cert status chips (Tools tab + Settings tab)
+    applyCertStatus('status-badge', 'cert-dot', 'cert-label', 'cert-expiry-label', state);
+    applyCertStatus('settings-status-badge', 'settings-cert-dot', 'settings-cert-label', 'settings-cert-expiry-label', state);
 
     const encBtn = document.getElementById('btn-encrypt');
     const decBtn = document.getElementById('btn-decrypt');
