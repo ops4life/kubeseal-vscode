@@ -1,3 +1,10 @@
+# [3.11.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.10.0...v3.11.0) (2026-09-22)
+
+
+### Features
+
+* show certificate expiration in Settings tab ([#83](https://github.com/ops4life/kubeseal-vscode/issues/83)) ([96a82f2](https://github.com/ops4life/kubeseal-vscode/commit/96a82f2adaf51f2b4acb09d2df4af33406964975))
+
 # [3.10.0](https://github.com/ops4life/kubeseal-vscode/compare/v3.9.0...v3.10.0) (2026-08-21)
 
 
