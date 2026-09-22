@@ -983,7 +983,17 @@ textarea.md-input.readonly {
         </button>
       </div>
       <div class="md-settings-desc">Certificate used to seal secrets.</div>
-      <div class="md-status-sub" id="settings-cert-expiry-label" style="display:none"></div>
+    </div>
+    <div class="md-status-chip err" id="settings-status-badge">
+      <div class="md-dot-wrap">
+        <div class="md-dot red" id="settings-cert-dot"></div>
+        <div class="md-pulse"></div>
+      </div>
+      <div class="md-status-info">
+        <div class="md-status-super">Certificate</div>
+        <div class="md-status-label" id="settings-cert-label"></div>
+        <div class="md-status-sub" id="settings-cert-expiry-label" style="display:none"></div>
+      </div>
     </div>
   </div>
 
@@ -1350,6 +1360,35 @@ textarea.md-input.readonly {
     return { severity: 'ok', dotColor: 'green', text: '✓ Valid until ' + dateStr + ' (' + expiry.daysLeft + 'd)' };
   }
 
+  function applyCertStatus(badgeId, dotId, labelId, expiryId, state) {
+    const badge    = document.getElementById(badgeId);
+    const dot      = document.getElementById(dotId);
+    const label    = document.getElementById(labelId);
+    const expiryEl = document.getElementById(expiryId);
+
+    if (state.activeCertFile) {
+      label.textContent = state.activeCertFile;
+
+      const info = formatCertExpiry(state.certExpiry);
+      if (info) {
+        badge.className = 'md-status-chip ' + info.severity;
+        dot.className    = 'md-dot ' + info.dotColor;
+        expiryEl.style.display = '';
+        expiryEl.textContent = info.text;
+      } else {
+        // cert file exists but couldn't be parsed
+        badge.className = 'md-status-chip ok';
+        dot.className    = 'md-dot green';
+        expiryEl.style.display = 'none';
+      }
+    } else {
+      badge.className = 'md-status-chip err';
+      dot.className    = 'md-dot red';
+      label.textContent = 'No certificate configured';
+      expiryEl.style.display = 'none';
+    }
+  }
+
   function updateState(state) {
     // Settings tab
     document.getElementById('certs-folder').value = state.certsFolder || '';
@@ -1376,41 +1415,9 @@ textarea.md-input.readonly {
       if (!state.activeCertFile) sel.value = '';
     }
 
-    // Actions status chip
-    const badge      = document.getElementById('status-badge');
-    const dot        = document.getElementById('cert-dot');
-    const label      = document.getElementById('cert-label');
-    const expiryEl   = document.getElementById('cert-expiry-label');
-    const settingsExpiryEl = document.getElementById('settings-cert-expiry-label');
-
-    if (state.activeCertFile) {
-      label.textContent = state.activeCertFile;
-
-      const expiry = state.certExpiry;
-      const info = formatCertExpiry(expiry);
-      if (info) {
-        expiryEl.style.display = '';
-        expiryEl.textContent = info.text;
-        badge.className = 'md-status-chip ' + info.severity;
-        dot.className   = 'md-dot ' + info.dotColor;
-
-        settingsExpiryEl.style.display = '';
-        settingsExpiryEl.textContent = info.text;
-        settingsExpiryEl.className = 'md-status-sub ' + info.severity;
-      } else {
-        // cert file exists but couldn't be parsed
-        badge.className = 'md-status-chip ok';
-        dot.className   = 'md-dot green';
-        expiryEl.style.display = 'none';
-        settingsExpiryEl.style.display = 'none';
-      }
-    } else {
-      badge.className = 'md-status-chip err';
-      dot.className   = 'md-dot red';
-      label.textContent = 'No certificate configured';
-      expiryEl.style.display = 'none';
-      settingsExpiryEl.style.display = 'none';
-    }
+    // Cert status chips (Tools tab + Settings tab)
+    applyCertStatus('status-badge', 'cert-dot', 'cert-label', 'cert-expiry-label', state);
+    applyCertStatus('settings-status-badge', 'settings-cert-dot', 'settings-cert-label', 'settings-cert-expiry-label', state);
 
     const encBtn = document.getElementById('btn-encrypt');
     const decBtn = document.getElementById('btn-decrypt');
