@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.svg" alt="ops4life Kubeseal VSCode Banner" width="100%">
+  <img src="assets/banner.png" alt="ops4life Kubeseal VSCode Banner" width="100%">
 </p>
 
 # Kubeseal VSCode Extension
