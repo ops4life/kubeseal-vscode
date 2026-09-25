@@ -1,3 +1,10 @@
+## [3.11.4](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.3...v3.11.4) (2026-09-25)
+
+
+### Bug Fixes
+
+* stop docs commits from triggering a version release ([#87](https://github.com/ops4life/kubeseal-vscode/issues/87)) ([af5cd8b](https://github.com/ops4life/kubeseal-vscode/commit/af5cd8b9c1cd188d2f0ac74090d8214e5fba80f2))
+
 ## [3.11.3](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.2...v3.11.3) (2026-09-25)
 
 ## [3.11.2](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.1...v3.11.2) (2026-09-25)
