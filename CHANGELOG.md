@@ -1,3 +1,10 @@
+## [3.11.5](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.4...v3.11.5) (2026-09-25)
+
+
+### Bug Fixes
+
+* resolve open Dependabot security alerts (ip-address, undici) ([#88](https://github.com/ops4life/kubeseal-vscode/issues/88)) ([afd3bfd](https://github.com/ops4life/kubeseal-vscode/commit/afd3bfdb16e22ae7409ab01f4ec4c2012efdf641))
+
 ## [3.11.4](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.3...v3.11.4) (2026-09-25)
 
 
