@@ -1,8 +1,38 @@
 /* Custom styles for Kubeseal VSCode documentation */
+/* Palette matches assets/banner.svg: black gradient header, lime accent, slate muted text */
+
+:root,
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #000000;
+  --md-primary-fg-color--light: #1a1a1a;
+  --md-primary-fg-color--dark: #000000;
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: #c0ff00;
+  --md-accent-fg-color--transparent: rgba(192, 255, 0, 0.1);
+  --md-accent-bg-color: #000000;
+}
+
+/* Lime-on-white fails contrast for body text links, so light mode gets a
+   darkened shade of the same hue; dark mode uses the banner's exact lime. */
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: #6b8f00;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-typeset-a-color: #c0ff00;
+  --md-default-fg-color--light: #94a3b8;
+  --md-default-fg-color--lighter: #94a3b8;
+}
 
 /* Header styling */
 .md-header {
   font-weight: 600;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+}
+
+.md-tabs {
+  background: #000000;
 }
 
 /* Improve code block readability */
