@@ -134,3 +134,22 @@ data:
 
 !!! note
     The extension automatically detects which values are already encoded or decoded and skips them to prevent double encoding/decoding. Binary data is preserved as base64 during decoding.
+
+## Compare with the CLI
+
+Every action the extension runs is a thin wrapper around the same `kubeseal`/`kubectl`
+commands you'd type by hand — nothing hidden. Run the equivalent command yourself in a
+terminal to see exactly what the extension does and confirm the output matches:
+
+| Extension action | Equivalent CLI command |
+| --- | --- |
+| **Encrypt with Kubeseal** | `kubeseal --cert <your-cert.pem> --format yaml < my-secret.yaml > my-secret-sealed.yaml` |
+| **Decrypt Secret** (from cluster) | `kubectl get secret <name> -n <namespace> -o yaml > my-secret-unsealed.yaml` |
+| **View Tab → list namespaces** | `kubectl get ns -o jsonpath='{.items[*].metadata.name}'` |
+| **View Tab → list secrets** | `kubectl get secrets -n <namespace> -o jsonpath='{.items[*].metadata.name}'` |
+| **Encode/Decode Base64 Values** | Node's `Buffer` — equivalent to `echo -n '<value>' \| base64` / `echo '<value>' \| base64 -d`, but run in-process (no external `base64` binary, so it works on Windows too) |
+
+Since the extension shells out to the exact same `kubeseal`/`kubectl` binaries on your
+`PATH` (via `spawn()`, never a shell string), the output of the CLI command and the
+extension action should always be identical — useful for verifying trust in the tool or
+debugging a mismatch.
