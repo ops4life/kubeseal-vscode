@@ -168,7 +168,7 @@
         "js-yaml": "^4.3.2"
     },
     "overrides": {
-        "undici": ">=8.10.0",
+        "undici": ">=8.11.2",
         "@actions/http-client": ">=3.0.2",
         "npm": "11.20.0"
     }
