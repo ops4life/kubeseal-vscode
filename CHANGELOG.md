@@ -1,3 +1,10 @@
+## [3.11.6](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.5...v3.11.6) (2026-10-26)
+
+
+### Bug Fixes
+
+* **ci:** fall back to free gitleaks CLI when license secret is unavailable ([#100](https://github.com/ops4life/kubeseal-vscode/issues/100)) ([9454c8d](https://github.com/ops4life/kubeseal-vscode/commit/9454c8daffa0a02f2c9de23c986f5c4e6543af4a))
+
 ## [3.11.5](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.4...v3.11.5) (2026-09-25)
 
 
