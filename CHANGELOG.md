@@ -1,3 +1,10 @@
+## [3.11.7](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.6...v3.11.7) (2026-11-09)
+
+
+### Bug Fixes
+
+* run pre-commit-ci on the PR head ([#110](https://github.com/ops4life/kubeseal-vscode/issues/110)) ([423a7c1](https://github.com/ops4life/kubeseal-vscode/commit/423a7c1b5117ab1439df537939c5088d281dbb47))
+
 ## [3.11.6](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.5...v3.11.6) (2026-10-26)
 
 
