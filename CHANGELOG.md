@@ -1,3 +1,10 @@
+## [3.11.10](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.9...v3.11.10) (2026-11-12)
+
+
+### Bug Fixes
+
+* **ci:** fetch full history for the mkdocs revision-date plugin ([#115](https://github.com/ops4life/kubeseal-vscode/issues/115)) ([df15923](https://github.com/ops4life/kubeseal-vscode/commit/df1592357b0d8a97ba87f3fcfe7509be2cde7b0b))
+
 ## [3.11.9](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.8...v3.11.9) (2026-11-12)
 
 
