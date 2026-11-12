@@ -1,3 +1,10 @@
+## [3.11.9](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.8...v3.11.9) (2026-11-12)
+
+
+### Bug Fixes
+
+* **ci:** install npm dependencies before pre-commit hooks ([#114](https://github.com/ops4life/kubeseal-vscode/issues/114)) ([48d695e](https://github.com/ops4life/kubeseal-vscode/commit/48d695e470f3341d1b1df480aa122dae0f05138c))
+
 ## [3.11.8](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.7...v3.11.8) (2026-11-12)
 
 
