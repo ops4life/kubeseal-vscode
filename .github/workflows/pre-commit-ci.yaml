@@ -11,6 +11,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
           token: ${{ secrets.WORKFLOW_TOKEN || github.token }}
 
       - uses: actions/setup-python@v7
