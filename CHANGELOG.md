@@ -1,3 +1,10 @@
+## [3.11.8](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.7...v3.11.8) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** clear open Dependabot alerts in package-lock.json ([#113](https://github.com/ops4life/kubeseal-vscode/issues/113)) ([49c029e](https://github.com/ops4life/kubeseal-vscode/commit/49c029edda7db4c7de6a7119b9218be92f74e66e))
+
 ## [3.11.7](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.6...v3.11.7) (2026-11-09)
 
 
