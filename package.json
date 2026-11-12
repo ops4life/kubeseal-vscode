@@ -170,6 +170,12 @@
     "overrides": {
         "undici": ">=8.12.3",
         "@actions/http-client": ">=3.0.2",
-        "npm": "11.20.0"
+        "npm": "11.21.2",
+        "glob": {
+            "minimatch": "^11.0.1"
+        },
+        "@typescript-eslint/typescript-estree": {
+            "minimatch": "^11.0.1"
+        }
     }
 }
