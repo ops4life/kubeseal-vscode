@@ -1,3 +1,24 @@
+## [3.11.10](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.9...v3.11.10) (2026-11-12)
+
+
+### Bug Fixes
+
+* **ci:** fetch full history for the mkdocs revision-date plugin ([#115](https://github.com/ops4life/kubeseal-vscode/issues/115)) ([df15923](https://github.com/ops4life/kubeseal-vscode/commit/df1592357b0d8a97ba87f3fcfe7509be2cde7b0b))
+
+## [3.11.9](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.8...v3.11.9) (2026-11-12)
+
+
+### Bug Fixes
+
+* **ci:** install npm dependencies before pre-commit hooks ([#114](https://github.com/ops4life/kubeseal-vscode/issues/114)) ([48d695e](https://github.com/ops4life/kubeseal-vscode/commit/48d695e470f3341d1b1df480aa122dae0f05138c))
+
+## [3.11.8](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.7...v3.11.8) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** clear open Dependabot alerts in package-lock.json ([#113](https://github.com/ops4life/kubeseal-vscode/issues/113)) ([49c029e](https://github.com/ops4life/kubeseal-vscode/commit/49c029edda7db4c7de6a7119b9218be92f74e66e))
+
 ## [3.11.7](https://github.com/ops4life/kubeseal-vscode/compare/v3.11.6...v3.11.7) (2026-11-09)
 
 

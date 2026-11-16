@@ -2,7 +2,7 @@
     "name": "kubeseal-vscode",
     "displayName": "Kubeseal VSCode",
     "description": "VS Code extension for encrypting and decrypting Kubernetes secrets using kubeseal",
-    "version": "3.11.7",
+    "version": "3.11.10",
     "repository": {
         "type": "git",
         "url": "https://github.com/ops4life/kubeseal-vscode.git"
@@ -170,6 +170,12 @@
     "overrides": {
         "undici": ">=8.12.3",
         "@actions/http-client": ">=3.0.2",
-        "npm": "11.20.0"
+        "npm": "11.21.2",
+        "glob": {
+            "minimatch": "^11.0.1"
+        },
+        "@typescript-eslint/typescript-estree": {
+            "minimatch": "^11.0.1"
+        }
     }
 }
